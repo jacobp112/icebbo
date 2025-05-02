@@ -1,0 +1,254 @@
+{
+  "format": 1,
+  "protocol": "candidate-price-v1",
+  "vectors": [
+    {
+      "name": "reset",
+      "action": "reset",
+      "expect": {
+        "bid_valid": false,
+        "best_bid": 0,
+        "ask_valid": false,
+        "best_ask": 0
+      }
+    },
+    {
+      "name": "first_bid",
+      "action": "frame",
+      "frame_hex": "A5100000006453",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 100,
+        "ask_valid": false,
+        "best_ask": 0
+      }
+    },
+    {
+      "name": "first_ask",
+      "action": "frame",
+      "frame_hex": "A511000000C87C",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 100,
+        "ask_valid": true,
+        "best_ask": 200
+      }
+    },
+    {
+      "name": "better_bid",
+      "action": "frame",
+      "frame_hex": "A5100000006E65",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 200
+      }
+    },
+    {
+      "name": "worse_bid",
+      "action": "frame",
+      "frame_hex": "A5100000005AE9",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 200
+      }
+    },
+    {
+      "name": "equal_bid",
+      "action": "frame",
+      "frame_hex": "A5100000006E65",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 200
+      }
+    },
+    {
+      "name": "better_ask",
+      "action": "frame",
+      "frame_hex": "A511000000BE39",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "worse_ask",
+      "action": "frame",
+      "frame_hex": "A511000000D23A",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "equal_ask",
+      "action": "frame",
+      "frame_hex": "A511000000BE39",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "bad_crc",
+      "action": "frame",
+      "frame_hex": "A510FFFFFFFFB7",
+      "accepted": false,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "bad_control",
+      "action": "frame",
+      "frame_hex": "A5120000006382",
+      "accepted": false,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "zero_bid_is_worse",
+      "action": "frame",
+      "frame_hex": "A5100000000068",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "max_ask_is_worse",
+      "action": "frame",
+      "frame_hex": "A511FFFFFFFFD4",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 110,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "back_to_back_bid_1",
+      "action": "frame",
+      "frame_hex": "A5100000007807",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 120,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "back_to_back_bid_2",
+      "action": "frame",
+      "frame_hex": "A51000000082EF",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 130,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "marker_in_price",
+      "action": "frame",
+      "frame_hex": "A510A5000001DE",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 2768240641,
+        "ask_valid": true,
+        "best_ask": 190
+      }
+    },
+    {
+      "name": "reset_again",
+      "action": "reset",
+      "expect": {
+        "bid_valid": false,
+        "best_bid": 0,
+        "ask_valid": false,
+        "best_ask": 0
+      }
+    },
+    {
+      "name": "first_zero_ask",
+      "action": "frame",
+      "frame_hex": "A511000000000A",
+      "accepted": true,
+      "expect": {
+        "bid_valid": false,
+        "best_bid": 0,
+        "ask_valid": true,
+        "best_ask": 0
+      }
+    },
+    {
+      "name": "first_max_bid",
+      "action": "frame",
+      "frame_hex": "A510FFFFFFFFB6",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 4294967295,
+        "ask_valid": true,
+        "best_ask": 0
+      }
+    },
+    {
+      "name": "min_bid_is_worse",
+      "action": "frame",
+      "frame_hex": "A5100000000068",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 4294967295,
+        "ask_valid": true,
+        "best_ask": 0
+      }
+    },
+    {
+      "name": "max_ask_is_worse_again",
+      "action": "frame",
+      "frame_hex": "A511FFFFFFFFD4",
+      "accepted": true,
+      "expect": {
+        "bid_valid": true,
+        "best_bid": 4294967295,
+        "ask_valid": true,
+        "best_ask": 0
+      }
+    }
+  ]
+}
