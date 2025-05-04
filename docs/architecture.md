@@ -12,7 +12,7 @@ Candidate: Lattice ICE40UP5K-SG48I, 7 x 7 mm QFN with 0.5 mm pitch, 39 I/O, and 
 
 ## Proposed synchronous core
 
-At an accepted `candidate_valid && candidate_ready` rising edge, the side and price enter a candidate register. On the next rising edge, the core compares that candidate with the corresponding stored extrema and updates the register if qualified. Outputs are register values after that edge. The RTL increment must verify back-to-back candidates, including consecutive updates to the same side, and document the measured cycle convention. The UART receiver and frame parser precede this core boundary and have separate latency.
+At an accepted `candidate_valid && candidate_ready` rising edge, the side and price enter a candidate register. On the next rising edge, the core compares that candidate with the corresponding stored extrema and updates the register if qualified. Outputs are register values after that edge. The initial directed Icarus testbenches confirm this one-cycle core transfer-to-update interval and consecutive same-side candidates. For a complete seven-byte frame, the final byte is accepted at edge N, the core accepts the parser output at N+1, and the state updates at N+2. The UART receiver precedes this byte interface and its latency is separate. These are simulated cycle results, not synthesis timing or physical measurements.
 
 ## Board subsystems and review gates
 

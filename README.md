@@ -2,7 +2,7 @@
 
 A proposed four-layer, USB-connected iCE40UP5K board for a deliberately small market-data processing experiment. The FPGA will maintain the highest bid candidate and lowest ask candidate seen since reset for one instrument.
 
-**Status:** protocol and tooling foundation. There is no board layout, RTL implementation, synthesis result, fabricated hardware, or latency measurement yet. The current software model and vectors define expected behaviour for the coming RTL work.
+**Status:** protocol foundation and initial RTL with directed simulation. There is no board layout, synthesis result, fabricated hardware, or latency measurement yet. The software model and vectors define the expected behaviour; the next verification increment will run every saved vector against RTL.
 
 This is a running-extrema demonstration. It cannot recover the next-best quote after a withdrawal and is not a complete order book, matching engine, or exchange feed.
 
@@ -16,6 +16,10 @@ Host bytes -> FT2232H UART -> frame/CRC parser -> candidate register
 
 The proposed FPGA is an ICE40UP5K-SG48I clocked by a dedicated 48 MHz oscillator. The board architecture and electrical review gates are in [docs/architecture.md](docs/architecture.md). The exact byte protocol is in [protocol/spec.md](protocol/spec.md).
 
+The initial RTL testbench observes a valid frame's last byte at edge N, a candidate transfer at N+1, and the updated BBO registers after edge N+2. This is **simulated cycle behaviour**, not a timed physical result. The candidate core alone updates one edge after its input transfer.
+
+The module boundaries, directed test coverage, tool version and next verification gate are recorded in [docs/rtl-review.md](docs/rtl-review.md).
+
 ## Current reproducible check
 
 Python 3.11 or later is sufficient for the reference model and its vectors:
@@ -23,6 +27,14 @@ Python 3.11 or later is sufficient for the reference model and its vectors:
 ```text
 py -3 -m unittest discover -s protocol -p "test_*.py" -v
 ```
+
+With an OSS CAD Suite environment active, run the directed RTL testbenches from PowerShell:
+
+```text
+./sim/run.ps1
+```
+
+Alternatively, pass its `bin` directory through `-ToolBin`. The test runner uses Icarus Verilog and fails on a compile or simulation error.
 
 The tscircuit and Bun versions selected for board development are pinned in `package.json` and `package-lock.json`. Install them with `npm ci`, then check the CLI with `npx tsci --version`. Bun is required by the tscircuit CLI on this Windows setup. The RTL simulator and synthesis tool versions will be pinned and reported with their first use.
 
