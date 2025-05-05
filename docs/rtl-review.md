@@ -25,3 +25,5 @@ For another installation, run `sim/run.ps1` inside an activated OSS CAD Suite en
 ## Review findings and next verification gate
 
 The initial RTL implements the specified running extrema and does not require a pipeline bypass for consecutive core candidates: at each update edge it sees the BBO value written at the preceding edge. The next verification increment will drive **all saved protocol vectors** against RTL, including equal prices, both representable extremes, marker bytes inside price, and additional back-to-back frame cases. It will also test parser stalls and reset mid-frame. No synthesis result, timing slack, physical board behaviour or transport latency is claimed here.
+
+That verification increment is recorded in [verification.md](verification.md). The next distinct gate is FPGA synthesis and place-and-route evidence.
