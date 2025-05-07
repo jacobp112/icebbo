@@ -2,7 +2,7 @@
 
 A proposed four-layer, USB-connected iCE40UP5K board for a deliberately small market-data processing experiment. The FPGA will maintain the highest bid candidate and lowest ask candidate seen since reset for one instrument.
 
-**Status:** protocol foundation and RTL with deterministic vector simulation. There is no board layout, synthesis result, fabricated hardware, or latency measurement yet. All saved protocol vectors have been replayed against RTL; the verification coverage and limits are in [docs/verification.md](docs/verification.md).
+**Status:** protocol and RTL verification are complete for the constrained core. An initial provisional FPGA place-and-route run [failed the 48 MHz target](docs/synthesis.md). There is no board layout, final timing result, fabricated hardware, or physical latency measurement yet. All saved protocol vectors have been replayed against RTL; the verification coverage and limits are in [docs/verification.md](docs/verification.md).
 
 This is a running-extrema demonstration. It cannot recover the next-best quote after a withdrawal and is not a complete order book, matching engine, or exchange feed.
 
@@ -19,6 +19,8 @@ The proposed FPGA is an ICE40UP5K-SG48I clocked by a dedicated 48 MHz oscillator
 The initial RTL testbench observes a valid frame's last byte at edge N, a candidate transfer at N+1, and the updated BBO registers after edge N+2. This is **simulated cycle behaviour**, not a timed physical result. The candidate core alone updates one edge after its input transfer.
 
 The module boundaries, initial directed test coverage and tool version are recorded in [docs/rtl-review.md](docs/rtl-review.md). Expanded coverage is in [docs/verification.md](docs/verification.md).
+
+The provisional serial-input top, SG48 pin choices, synthesis counts, failed timing check, and tool-flow limitation are recorded in [docs/synthesis.md](docs/synthesis.md).
 
 ## Current reproducible check
 
