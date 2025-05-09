@@ -1,4 +1,5 @@
 import React from "react"
+import { UsbFtdi } from "./usb_ftdi"
 
 // Electrical capture for the FPGA power, clock and master-SPI boot path.
 // Package land patterns and board placement are provisional until PCB review.
@@ -53,6 +54,7 @@ const links: Link[] = [
   ["U5.CDONE", "FPGA_CDONE"], ["U5.SPI_SO", "FLASH_MOSI"],
   ["U5.SPI_SCK", "FLASH_SCK"], ["U5.SPI_SS", "FLASH_CS_N"],
   ["U5.SPI_SI", "FLASH_MISO"], ["U5.IOT46B_G0", "CLK48"],
+  ["U5.IOT44B", "HOST_UART_TX"], ["U5.IOT42B", "HOST_UART_RX"],
   // U6: W25Q16JVSSIQ. /WP and /HOLD are inactive for single-bit SPI.
   ["U6.CS_N", "FLASH_CS_N"], ["U6.DO", "FLASH_MISO"],
   ["U6.WP_N", "FLASH_WP_N"], ["U6.GND", "GND"],
@@ -118,6 +120,7 @@ export default function PowerConfig() {
       <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${net}`} />,
       <trace key={`${name}-2`} from={`${name}.pin2`} to="net.GND" />,
     ])}
+    <UsbFtdi />
     </schematicsheet>
   </board>
 }

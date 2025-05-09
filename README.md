@@ -2,7 +2,7 @@
 
 A proposed four-layer, USB-connected iCE40UP5K board for a deliberately small market-data processing experiment. The FPGA will maintain the highest bid candidate and lowest ask candidate seen since reset for one instrument.
 
-**Status:** protocol and RTL verification are complete for the constrained core. An initial provisional FPGA place-and-route run [failed the 48 MHz target](docs/synthesis.md). A [partial power/configuration schematic](docs/power-config-review.md) has a checked netlist; USB integration and PCB design remain open. There is no board layout, final timing result, fabricated hardware, or physical latency measurement yet. All saved protocol vectors have been replayed against RTL; the verification coverage and limits are in [docs/verification.md](docs/verification.md).
+**Status:** protocol and RTL verification are complete for the constrained core. An initial provisional FPGA place-and-route run [failed the 48 MHz target](docs/synthesis.md). The [power/configuration](docs/power-config-review.md) and [self-powered USB/FTDI](docs/usb-ftdi-review.md) schematic captures have targeted netlist checks; footprint review and PCB design remain open. There is no board layout, final timing result, fabricated hardware, or physical latency measurement yet. All saved protocol vectors have been replayed against RTL; the verification coverage and limits are in [docs/verification.md](docs/verification.md).
 
 This is a running-extrema demonstration. It cannot recover the next-best quote after a withdrawal and is not a complete order book, matching engine, or exchange feed.
 
@@ -22,7 +22,7 @@ The module boundaries, initial directed test coverage and tool version are recor
 
 The provisional serial-input top, SG48 pin choices, synthesis counts, failed timing check, and tool-flow limitation are recorded in [docs/synthesis.md](docs/synthesis.md).
 
-The captured rail, reset, clock and master-SPI connections, their data-sheet sources, and the open electrical checks are in [docs/power-config-review.md](docs/power-config-review.md).
+The captured rail, reset, clock and master-SPI connections, their data-sheet sources, and the open electrical checks are in [docs/power-config-review.md](docs/power-config-review.md). The USB data, self-powered supply choice, FT2232H support circuit and flash-bus interlock are in [docs/usb-ftdi-review.md](docs/usb-ftdi-review.md).
 
 ## Current reproducible check
 
@@ -42,7 +42,7 @@ Alternatively, pass its `bin` directory through `-ToolBin`. The test runner uses
 
 The tscircuit and Bun versions selected for board development are pinned in `package.json` and `package-lock.json`. Install them with `npm ci`, then check the CLI with `npx tsci --version`. Bun is required by the tscircuit CLI on this Windows setup. The RTL simulator and synthesis tool versions will be pinned and reported with their first use.
 
-To build and check the partial tscircuit schematic on Windows after `npm ci`:
+To build and check the combined tscircuit schematic on Windows after `npm ci`:
 
 ```text
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/check_schematic.ps1

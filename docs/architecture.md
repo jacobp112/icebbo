@@ -16,9 +16,9 @@ At an accepted `candidate_valid && candidate_ready` rising edge, the side and pr
 
 ## Board subsystems and review gates
 
-1. USB-C sink and FT2232H: use the FTDI bus-powered reference as the electrical starting point, including the 12 MHz FTDI clock, its 1.8 V regulator connections, EEPROM, reset, USB protection and CC resistors. Review the actual pin map and power budget before wiring.
-2. Configuration: 3.3 V SPI flash in master-SPI boot mode. Define an isolated FT2232H channel-A programming path and verify flash bus ownership in power-up, reset, programming and run states.
-3. Power: proposed 1.2 V core/PLL, 3.3 V I/O/SPI/USB bridge and 2.5 V VPP rails. Initial load allowances are 150, 200 and 30 mA respectively; these are engineering budgets, not measurements. Check regulator dissipation, USB inrush, decoupling, ramp and sequencing against the current Lattice and FTDI datasheets. Hold CRESET_B asserted until rails are valid. Regulator and supervisor parts are not yet frozen.
+1. USB-C and FT2232H: use the FTDI **self-powered** reference. An external regulated 5 V input supplies the board; USB VBUS is sensed but does not feed the regulators. The FTDI has its own 12 MHz crystal, 1.8 V regulator connections, EEPROM, reset, USB protection and CC resistors. The initial source-current analysis is in [USB/FTDI review](usb-ftdi-review.md).
+2. Configuration: 3.3 V SPI flash in master-SPI boot mode. A four-channel buffer isolates FT2232H channel A from the flash bus unless the host requests programming while FPGA reset is actually asserted. Review flash bus ownership in power-up, reset, programming and run states.
+3. Power: proposed 1.2 V core/PLL, 3.3 V I/O/SPI/USB bridge and 2.5 V VPP rails. Initial load allowances are 150, 200 and 30 mA respectively; these are engineering budgets, not measurements. Check regulator dissipation, decoupling, ramp and sequencing against the current Lattice and FTDI datasheets. Hold CRESET_B asserted until rails are valid. Regulator and supervisor parts are not yet frozen.
 4. Clock and layout: place the FPGA oscillator near its clock input. A four-layer stack is proposed: top signal, continuous ground, power/ground regions, bottom signal. Select a fabricator stack-up and calculate USB differential geometry before routing. Review return paths, QFN fanout, thermal pad and decoupler placement on the rendered board.
 
 The schematic, PCB, timing and measurement reviews are separate gates. A tscircuit render or autorouter completion alone does not certify the design for fabrication.

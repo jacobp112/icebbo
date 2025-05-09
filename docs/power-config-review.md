@@ -1,6 +1,6 @@
 # Power, clock and master-SPI schematic review
 
-This review covers [hardware/power_config.tsx](../hardware/power_config.tsx), a **partial** tscircuit schematic for the FPGA power, reset, clock and boot-flash path. The full USB/FT2232H circuit and four-layer placement/routing are later increments. `P5V` is an input from a conditioned 5 V source; this file does not connect raw USB VBUS to bulk capacitance.
+This review records the FPGA power, reset, clock and boot-flash slice of [hardware/power_config.tsx](../hardware/power_config.tsx) at the power/configuration checkpoint. The later [USB/FTDI review](usb-ftdi-review.md) covers the integrated self-powered USB and flash-programming circuit. `P5V` receives external regulated 5 V through a fuse and diode; raw USB VBUS is sense-only.
 
 ## Captured circuit
 
@@ -20,13 +20,13 @@ The Lattice hardware checklist calls for 4.7 µF + 100 nF at each FPGA supply pi
 
 ## Netlist checks actually performed
 
-Run `powershell -File hardware/check_schematic.ps1` from the repository root. The script builds the tscircuit schematic without PCB output, checks the generated netlist against explicit SG48 pin/rail/flash/clock expectations in [check_power_config.mjs](../hardware/check_power_config.mjs), and invokes `tsci check netlist`. The latest run returned 51 components, 27 nets, zero netlist errors and zero netlist warnings. `tsci check pin_specification` also returned zero errors and zero warnings. The rendered schematic was inspected for component grouping and signal intent; the generated drawing's automatic passive layout is dense, so pin-accurate review uses the generated netlist and targeted checks.
+At this checkpoint, `hardware/check_schematic.ps1` built the partial circuit without PCB output, checked the generated netlist against explicit SG48 pin/rail/flash/clock expectations in [check_power_config.mjs](../hardware/check_power_config.mjs), and invoked `tsci check netlist`. That run returned 51 components, 27 nets, zero netlist errors and zero netlist warnings. `tsci check pin_specification` also returned zero errors and zero warnings. The rendered schematic was inspected for component grouping and signal intent; the generated drawing's automatic passive layout was dense, so pin-accurate review used the generated netlist and targeted checks. The current combined circuit has additional components and checks; see [USB/FTDI review](usb-ftdi-review.md).
 
 These checks verify connectivity in the captured schematic. They do not verify analogue startup, a real PCB pad map, USB current limits, signal integrity, manufacturability, or physical timing.
 
 ## Release gates for the next hardware increments
 
-1. Integrate FT2232H, USB-C, inrush-controlled `P5V`, pre-enumeration current management, host reset control and flash-bus isolation. Preserve the default FPGA ownership of the flash bus.
+1. Review the integrated FT2232H/USB-C circuit's actual footprints, external 5 V entry protection, host reset control and flash-bus isolation. Preserve the default FPGA ownership of the flash bus.
 2. Confirm the exact flash and oscillator orderable numbers, configuration commands, startup timing, current consumption, and available stock.
 3. Replace provisional land patterns with manufacturer-reviewed footprints. The exposed FPGA and TPS7A90 pads are represented as numbered schematic pins; the current generic footprinter footprints have not yet been shown to map those pins to the copper pad. PCB output from this partial design is intentionally disabled.
 4. Select rated capacitors and perform a worst-case load, thermal and voltage-tolerance calculation. Verify 3.3 V rail current with the FTDI bridge included, and resolve the zero guaranteed low-level noise margin between regulator PG and downstream EN.

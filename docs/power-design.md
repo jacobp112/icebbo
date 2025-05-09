@@ -4,8 +4,8 @@
 
 The iCE40UP5K-SG48I uses three distinct FPGA supply levels in this design. The proposed startup order is:
 
-1. A conditioned 5 V input (`P5V`) feeds an always-enabled 1.2 V regulator for `VCC` and, through the recommended RC filter, `VCCPLL`. The USB power-entry and inrush circuit is outside this schematic slice and remains to be designed with the FT2232H interface.
-2. A core-rail power-good output enables the 3.3 V regulator for `SPI_VCCIO1`, `VCCIO0`, `VCCIO2`, configuration flash, oscillator, and FT2232H I/O. FT2232H's other required supply connections remain to be checked against its data sheet.
+1. An external regulated 5 V input passes through a resettable fuse and series Schottky diode to `P5V`. USB VBUS is a sense signal only and is not connected to the supply input. `P5V` feeds an always-enabled 1.2 V regulator for `VCC` and, through the recommended RC filter, `VCCPLL`.
+2. A core-rail power-good output enables the 3.3 V regulator for `SPI_VCCIO1`, `VCCIO0`, `VCCIO2`, configuration flash, oscillator, and all FT2232H 3.3 V supplies.
 3. A 3.3 V power-good output enables the 2.5 V regulator for `VPP_2V5`.
 4. `CRESET_B` remains low until all FPGA rails reach their minimum operating voltages, then rises to initiate master-SPI configuration. The programming interface must also be able to assert it low while writing the flash.
 
@@ -31,14 +31,14 @@ The three NR/SS capacitors are 8.2 nF nominal. With the data-sheet 4–9 µA cha
 
 The [TPS389025DSER](https://www.ti.com/product/TPS3890/part-details/TPS389025DSER) is the captured reset-supervisor candidate. Its nominal rising sense threshold is 2.414 V; the family's specified 1% threshold accuracy puts the lower bound at about 2.390 V, above the FPGA's 2.30 V master-SPI minimum. Powered from the already-enabled 3.3 V rail, it monitors `VPP_2V5` and holds `CRESET_B` low through its open-drain reset output until the rail is valid plus a delay. A 10 nF nominal CT capacitor gives approximately 10.7 ms using TI's nominal `t(sec) = C(µF) × 1.07 + 25 µs` equation. `MR` has a 10 kΩ pull-up to 3.3 V and a host-control net for the next integration increment; the eventual host driver must pull it low without driving it high. Supervisor startup and procurement remain to be checked.
 
-For USB, the [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf), bus-powered Figure 6.1, shows 3.3 V on `VREGIN`, `VPLL`, `VPHY` and all `VCCIO` pins; the bridge's internal regulator output powers its 1.8 V `VCORE` pins with the specified local capacitors. It also shows a 12 MHz crystal, USB data and reference connections, reset, and a 93C46 EEPROM. The FT2232H support network must be copied only after checking the exact LQFP64 pinout and selected EEPROM/crystal data sheets. Its internal 1.8 V output is for the FTDI subsystem and is not an FPGA supply.
+For USB, the [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf), self-powered Figure 6.3, shows 3.3 V on `VREGIN`, `VPLL`, `VPHY` and all `VCCIO` pins; the bridge's internal regulator output powers its 1.8 V `VCORE` pins with at least 3.3 µF local capacitance. The captured support network also has a 12 MHz crystal, USB data and reference connections, reset, a 93LC46B EEPROM, and VBUS-sensed `PWRSAV#`. Its internal 1.8 V output is for the FTDI subsystem and is not an FPGA supply. Pin and source review is in [usb-ftdi-review.md](usb-ftdi-review.md).
 
 ## Remaining design checks
 
 - Select actual capacitor orderable parts and verify effective 10 µF minimum under voltage and tolerance.
 - Calculate rail loads from the selected FPGA configuration, FT2232H, oscillator, flash, and support circuitry. The initial 150/200/30 mA allowances are budgets, not measured current.
-- Check the USB bus-power budget, startup current before enumeration, inrush and upstream port behavior with the final rail capacitance and FT2232H mode. `P5V` is a conditioned input boundary, not a direct assertion that USB VBUS can charge all three 22 µF input capacitors without current limiting.
+- Check the external 5 V supply rating, connector polarity, fuse hold/trip current, Schottky forward loss, reverse-current behavior, and total startup current. Confirm USB VBUS remains a sense input even during fault and suspend states.
 - Resolve power-good low-level noise margin and test startup/brownout sequencing.
 - Review package land patterns, exposed-pad mappings, and full-board netlist before placement. Configuration pins are `CRESET_B` pin 8 and `CDONE` pin 7; the master-SPI pins are 14–17.
 
-The partial schematic builds and its netlist passes a targeted pin/rail check. No rail simulation, complete board schematic, fabricated board, or physical power-up observation is available yet.
+The captured schematic builds and its generated netlist passes targeted pin/rail and USB/FTDI checks. No rail simulation, reviewed board footprints, fabricated board, or physical power-up observation is available yet.
