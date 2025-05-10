@@ -28,7 +28,7 @@ These checks verify connectivity in the captured schematic. They do not verify a
 
 1. Review the integrated FT2232H/USB-C circuit's actual footprints, external 5 V entry protection, host reset control and flash-bus isolation. Preserve the default FPGA ownership of the flash bus.
 2. Confirm the exact flash and oscillator orderable numbers, configuration commands, startup timing, current consumption, and available stock.
-3. Replace provisional land patterns with manufacturer-reviewed footprints. The exposed FPGA and TPS7A90 pads are represented as numbered schematic pins; the current generic footprinter footprints have not yet been shown to map those pins to the copper pad. PCB output from this partial design is intentionally disabled.
+3. The FPGA, regulator, supervisor, FTDI and USB-C land patterns have been compared with manufacturer drawings, and the exposed FPGA and TPS7A90 pads map to schematic pins 49 and 11 ([footprint review](footprint-review.md)). The generic flash, oscillator and passive footprints, courtyards and paste apertures remain to be reviewed.
 4. Select rated capacitors and perform a worst-case load, thermal and voltage-tolerance calculation. Verify 3.3 V rail current with the FTDI bridge included, and resolve the zero guaranteed low-level noise margin between regulator PG and downstream EN.
 5. Simulate or measure the three rail ramps and reset state during power-up, power-down and brownout. Confirm the flash is command-ready before the FPGA starts reading it.
 
