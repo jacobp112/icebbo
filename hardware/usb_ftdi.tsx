@@ -1,4 +1,6 @@
 import React from "react"
+import { Ft2232HlFootprint, Usb4105Footprint } from "./footprints"
+import { at } from "./placement"
 
 // Self-powered FT2232H host interface. Package land patterns are provisional.
 const ftdiPins = {
@@ -32,6 +34,7 @@ const links: Link[] = [
   ["J2.CC1", "USB_CC1"], ["J2.CC2", "USB_CC2"],
   ["J2.GND1", "GND"], ["J2.GND2", "GND"],
   ["J2.SHELL1", "GND"], ["J2.SHELL2", "GND"],
+  ["J2.SHELL3", "GND"], ["J2.SHELL4", "GND"],
   ["U12.DP", "USB_DP"], ["U12.DM", "USB_DM"], ["U12.GND", "GND"],
   // FT2232HL power and fixed-function pins follow its LQFP64 data sheet.
   ...["VCCIO_A","VCCIO_B","VCCIO_C","VCCIO_D","VREGIN"].map(p=>[`U8.${p}`,"V3V3"] as const),
@@ -99,21 +102,21 @@ const capacitors = [
 
 export function UsbFtdi() {
   return <>
-    <connector name="J1" manufacturerPartNumber="B2B-PH-K-S(LF)(SN)" footprint="pinrow2_p2mm" pinLabels={{pin1:"VIN",pin2:"GND"}} />
-    <chip name="F1" manufacturerPartNumber="MF-PSMF110X-2" footprint="1206" pinLabels={{pin1:"IN",pin2:"OUT"}} />
-    <chip name="D1" manufacturerPartNumber="SS14" footprint="sma" pinLabels={{pin1:"A",pin2:"K"}} />
-    <connector name="J2" standard="usb_c" manufacturerPartNumber="USB4105-GF-A" pinLabels={{pin13:"SHELL1",pin14:"SHELL2",pin15:"GND1",pin16:"VBUS1",pin17:"SBU2",pin18:"CC1",pin19:"DM2",pin20:"DP1",pin21:"DM1",pin22:"DP2",pin23:"SBU1",pin24:"CC2",pin25:"VBUS2",pin26:"GND2"}} />
-    <chip name="U12" manufacturerPartNumber="TPD2EUSB30ADRTR" footprint="sot23_3" pinLabels={{pin1:"DP",pin2:"DM",pin3:"GND"}} pinAttributes={{GND:{requiresGround:true}}} />
-    <chip name="U8" manufacturerPartNumber="FT2232HL" footprint="qfp64_w10mm_h10mm_p0.5mm" pinLabels={ftdiPins} pinAttributes={{VREGIN:{requiresPower:true},VCCIO_A:{requiresPower:true},VCCIO_B:{requiresPower:true},VCCIO_C:{requiresPower:true},VCCIO_D:{requiresPower:true},GND1:{requiresGround:true},AGND:{requiresGround:true}}} />
-    <chip name="U9" manufacturerPartNumber="SN74LVC126APWR" footprint="tssop14_p0.65mm" pinLabels={{pin1:"OE1",pin2:"A1",pin3:"Y1",pin4:"OE2",pin5:"A2",pin6:"Y2",pin7:"GND",pin8:"Y3",pin9:"A3",pin10:"OE3",pin11:"Y4",pin12:"A4",pin13:"OE4",pin14:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
-    <chip name="U10" manufacturerPartNumber="SN74LVC1G02DBVR" footprint="sot23_5" pinLabels={{pin1:"A",pin2:"B",pin3:"GND",pin4:"Y",pin5:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
-    <chip name="Q1" manufacturerPartNumber="2N7002" footprint="sot23" pinLabels={{pin1:"G",pin2:"S",pin3:"D"}} />
-    <chip name="U11" manufacturerPartNumber="93LC46B-I/SN" footprint="soic8_p1.27mm" pinLabels={{pin1:"CS",pin2:"CLK",pin3:"DI",pin4:"DO",pin5:"GND",pin6:"NC6",pin7:"NC7",pin8:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
-    <chip name="X2" manufacturerPartNumber="ABM8-12.000MHZ-B2-T" footprint="crystal4" pinLabels={{pin1:"X1",pin2:"GND1",pin3:"X2",pin4:"GND2"}} />
-    <chip name="FB1" manufacturerPartNumber="BLM18AG601SN1D" footprint="0603" pinLabels={{pin1:"IN",pin2:"OUT"}} />
-    <chip name="FB2" manufacturerPartNumber="BLM18AG601SN1D" footprint="0603" pinLabels={{pin1:"IN",pin2:"OUT"}} />
-    {resistors.map(([name,value])=><resistor key={name} name={name} resistance={value} footprint="0603" />)}
-    {capacitors.map(([name,value])=><capacitor key={name} name={name} capacitance={value} footprint="0603" />)}
+    <connector name="J1" {...at("J1")} manufacturerPartNumber="B2B-PH-K-S(LF)(SN)" footprint="pinrow2_p2mm" pinLabels={{pin1:"VIN",pin2:"GND"}} />
+    <chip name="F1" {...at("F1")} manufacturerPartNumber="MF-PSMF110X-2" footprint="1206" pinLabels={{pin1:"IN",pin2:"OUT"}} />
+    <chip name="D1" {...at("D1")} manufacturerPartNumber="SS14" footprint="sma" pinLabels={{pin1:"A",pin2:"K"}} />
+    <connector name="J2" {...at("J2")} standard="usb_c" manufacturerPartNumber="USB4105-GF-A" footprint={<Usb4105Footprint />} pinLabels={{pin1:"SHELL3",pin2:"SHELL4",pin13:"SHELL1",pin14:"SHELL2",pin15:"GND1",pin16:"VBUS1",pin17:"SBU2",pin18:"CC1",pin19:"DM2",pin20:"DP1",pin21:"DM1",pin22:"DP2",pin23:"SBU1",pin24:"CC2",pin25:"VBUS2",pin26:"GND2"}} />
+    <chip name="U12" {...at("U12")} manufacturerPartNumber="TPD2EUSB30ADRTR" footprint="sot23_3" pinLabels={{pin1:"DP",pin2:"DM",pin3:"GND"}} pinAttributes={{GND:{requiresGround:true}}} />
+    <chip name="U8" {...at("U8")} manufacturerPartNumber="FT2232HL" footprint={<Ft2232HlFootprint />} pinLabels={ftdiPins} pinAttributes={{VREGIN:{requiresPower:true},VCCIO_A:{requiresPower:true},VCCIO_B:{requiresPower:true},VCCIO_C:{requiresPower:true},VCCIO_D:{requiresPower:true},GND1:{requiresGround:true},AGND:{requiresGround:true}}} />
+    <chip name="U9" {...at("U9")} manufacturerPartNumber="SN74LVC126APWR" footprint="tssop14_p0.65mm" pinLabels={{pin1:"OE1",pin2:"A1",pin3:"Y1",pin4:"OE2",pin5:"A2",pin6:"Y2",pin7:"GND",pin8:"Y3",pin9:"A3",pin10:"OE3",pin11:"Y4",pin12:"A4",pin13:"OE4",pin14:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
+    <chip name="U10" {...at("U10")} manufacturerPartNumber="SN74LVC1G02DBVR" footprint="sot23_5" pinLabels={{pin1:"A",pin2:"B",pin3:"GND",pin4:"Y",pin5:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
+    <chip name="Q1" {...at("Q1")} manufacturerPartNumber="2N7002" footprint="sot23" pinLabels={{pin1:"G",pin2:"S",pin3:"D"}} />
+    <chip name="U11" {...at("U11")} manufacturerPartNumber="93LC46B-I/SN" footprint="soic8_p1.27mm" pinLabels={{pin1:"CS",pin2:"CLK",pin3:"DI",pin4:"DO",pin5:"GND",pin6:"NC6",pin7:"NC7",pin8:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
+    <chip name="X2" {...at("X2")} manufacturerPartNumber="ABM8-12.000MHZ-B2-T" footprint="crystal4" pinLabels={{pin1:"X1",pin2:"GND1",pin3:"X2",pin4:"GND2"}} />
+    <chip name="FB1" {...at("FB1")} manufacturerPartNumber="BLM18AG601SN1D" footprint="0603" pinLabels={{pin1:"IN",pin2:"OUT"}} />
+    <chip name="FB2" {...at("FB2")} manufacturerPartNumber="BLM18AG601SN1D" footprint="0603" pinLabels={{pin1:"IN",pin2:"OUT"}} />
+    {resistors.map(([name,value])=><resistor key={name} name={name} {...at(name)} resistance={value} footprint="0603" />)}
+    {capacitors.map(([name,value])=><capacitor key={name} name={name} {...at(name)} capacitance={value} footprint={value === "4.7uF" || value === "3.3uF" ? "0805" : "0603"} />)}
     {links.map(([port,net],i)=><trace key={`usb-${i}`} from={port} to={`net.${net}`} />)}
     {resistors.flatMap(([name,,a,b])=>[
       <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${a}`} />,

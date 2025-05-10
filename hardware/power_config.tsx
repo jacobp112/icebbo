@@ -1,5 +1,7 @@
 import React from "react"
 import { UsbFtdi } from "./usb_ftdi"
+import { Ice40Sg48Footprint, Tps3890DseFootprint, Tps7a90DskFootprint } from "./footprints"
+import { at } from "./placement"
 
 // Electrical capture for the FPGA power, clock and master-SPI boot path.
 // Package land patterns and board placement are provisional until PCB review.
@@ -100,17 +102,17 @@ const capacitors = [
 ] as const
 
 export default function PowerConfig() {
-  return <board width="80mm" height="60mm" layers={4}>
+  return <board width="100mm" height="70mm" layers={4}>
     <schematicsheet name="power_config" sheetSize="ANSI_B">
-    <chip name="U1" manufacturerPartNumber="TPS7A9001DSKR" footprint="qfn10_w2.5mm_h2.5mm_p0.5mm" pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
-    <chip name="U2" manufacturerPartNumber="TPS7A9001DSKR" footprint="qfn10_w2.5mm_h2.5mm_p0.5mm" pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
-    <chip name="U3" manufacturerPartNumber="TPS7A9001DSKR" footprint="qfn10_w2.5mm_h2.5mm_p0.5mm" pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
-    <chip name="U4" manufacturerPartNumber="TPS389025DSER" footprint="qfn6_w1.5mm_h1.5mm_p0.5mm" pinLabels={{pin1:"SENSE",pin2:"GND",pin3:"MR",pin4:"VDD",pin5:"CT",pin6:"RESET"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
-    <chip name="U5" manufacturerPartNumber="iCE40UP5K-SG48I" footprint="qfn48_w7mm_h7mm_p0.5mm_thermalpad5.4mmx5.4mm_pw0.25mm_pl0.55mm" pinLabels={fpgaPins} pinAttributes={{VCC_A:{requiresPower:true},VCC_B:{requiresPower:true},VCCPLL:{requiresPower:true},VCCIO0:{requiresPower:true},VCCIO2:{requiresPower:true},SPI_VCCIO1:{requiresPower:true},VPP_2V5:{requiresPower:true},GND_EP:{requiresGround:true}}} />
-    <chip name="U6" manufacturerPartNumber="W25Q16JVSSIQ" footprint="soic8_p1.27mm" pinLabels={{pin1:"CS_N",pin2:"DO",pin3:"WP_N",pin4:"GND",pin5:"DI",pin6:"CLK",pin7:"HOLD_N",pin8:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
-    <chip name="U7" manufacturerPartNumber="SiT8008BI-23-33E-48.000000" footprint="crystal4" pinLabels={{pin1:"OE",pin2:"GND",pin3:"OUT",pin4:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
-    {resistors.map(([name, resistance]) => <resistor key={name} name={name} resistance={resistance} footprint="0603" />)}
-    {capacitors.map(([name, capacitance]) => <capacitor key={name} name={name} capacitance={capacitance} footprint="0603" />)}
+    <chip name="U1" {...at("U1")} manufacturerPartNumber="TPS7A9001DSKR" footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
+    <chip name="U2" {...at("U2")} manufacturerPartNumber="TPS7A9001DSKR" footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
+    <chip name="U3" {...at("U3")} manufacturerPartNumber="TPS7A9001DSKR" footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
+    <chip name="U4" {...at("U4")} manufacturerPartNumber="TPS389025DSER" footprint={<Tps3890DseFootprint />} pinLabels={{pin1:"SENSE",pin2:"GND",pin3:"MR",pin4:"VDD",pin5:"CT",pin6:"RESET"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
+    <chip name="U5" {...at("U5")} manufacturerPartNumber="iCE40UP5K-SG48I" footprint={<Ice40Sg48Footprint />} pinLabels={fpgaPins} pinAttributes={{VCC_A:{requiresPower:true},VCC_B:{requiresPower:true},VCCPLL:{requiresPower:true},VCCIO0:{requiresPower:true},VCCIO2:{requiresPower:true},SPI_VCCIO1:{requiresPower:true},VPP_2V5:{requiresPower:true},GND_EP:{requiresGround:true}}} />
+    <chip name="U6" {...at("U6")} manufacturerPartNumber="W25Q16JVSSIQ" footprint="soic8_p1.27mm" pinLabels={{pin1:"CS_N",pin2:"DO",pin3:"WP_N",pin4:"GND",pin5:"DI",pin6:"CLK",pin7:"HOLD_N",pin8:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
+    <chip name="U7" {...at("U7")} manufacturerPartNumber="SiT8008BI-23-33E-48.000000" footprint="crystal4" pinLabels={{pin1:"OE",pin2:"GND",pin3:"OUT",pin4:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
+    {resistors.map(([name, resistance]) => <resistor key={name} name={name} {...at(name)} resistance={resistance} footprint="0603" />)}
+    {capacitors.map(([name, capacitance]) => <capacitor key={name} name={name} {...at(name)} capacitance={capacitance} footprint={Number(name.slice(1)) <= 6 ? "1206" : (capacitance === "4.7uF" ? "0805" : "0603")} />)}
     {links.map(([port, net], i) => <trace key={`ic-${i}`} from={port} to={`net.${net}`} />)}
     {resistors.flatMap(([name,, a,b]) => [
       <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${a}`} />,
