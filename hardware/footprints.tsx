@@ -1,5 +1,20 @@
 import React from "react"
 
+// Courtyards enclose the larger of body and copper plus 0.25 mm (IPC-7351
+// nominal). Silkscreen marks stay clear of copper; check_pcb.mjs verifies it.
+const SILK = 0.12
+const courtyard = (width: number, height: number, x = 0, y = 0) =>
+  <courtyardrect key="courtyard" pcbX={x} pcbY={y} width={width} height={height} />
+const pin1Dot = (x: number, y: number, radius = 0.1) =>
+  <silkscreencircle key="pin1" pcbX={x} pcbY={y} radius={radius} isFilled />
+const line = (key: string, points: [number, number][]) =>
+  <silkscreenpath key={key} strokeWidth={SILK} route={points.map(([x, y]) => ({ x, y }))} />
+// Four L-shaped marks at the body corners (+-half), each leg `length` long.
+const cornerMarks = (half: number, length: number) =>
+  [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([sx, sy]) => line(`corner-${sx}-${sy}`, [
+    [sx * half, sy * (half - length)], [sx * half, sy * half], [sx * (half - length), sy * half],
+  ]))
+
 // TI DSK0010A, 2.5 mm WSON: five pads on each side, 0.5 mm pitch,
 // and an electrically grounded, exposed center pad numbered 11.
 export function Tps7a90DskFootprint() {
@@ -7,6 +22,10 @@ export function Tps7a90DskFootprint() {
     {Array.from({length: 5}, (_, i) => <smtpad key={`left-${i}`} shape="rect" pcbX={-1.15} pcbY={1 - i * 0.5} width="0.6mm" height="0.25mm" portHints={[`pin${i + 1}`]} />)}
     {Array.from({length: 5}, (_, i) => <smtpad key={`right-${i}`} shape="rect" pcbX={1.15} pcbY={-1 + i * 0.5} width="0.6mm" height="0.25mm" portHints={[`pin${i + 6}`]} />)}
     <smtpad shape="rect" pcbX={0} pcbY={0} width="1.2mm" height="2mm" portHints={["pin11"]} />
+    {courtyard(3.4, 3.0)}
+    {line("top", [[-0.6, 1.45], [0.6, 1.45]])}
+    {line("bottom", [[-0.6, -1.45], [0.6, -1.45]])}
+    {pin1Dot(-1.15, 1.5)}
   </footprint>
 }
 
@@ -23,6 +42,10 @@ export function Tps3890DseFootprint() {
     {Array.from({length: 3}, (_, i) => <smtpad key={`right-${i}`} shape="rect"
       pcbX={0.6} pcbY={-0.5 + i * 0.5} width="0.7mm" height="0.25mm"
       portHints={[`pin${i + 4}`]} />)}
+    {courtyard(2.4, 2.0)}
+    {line("top", [[-0.75, 0.9], [0.75, 0.9]])}
+    {line("bottom", [[-0.75, -0.9], [0.75, -0.9]])}
+    {pin1Dot(-1.2, 0.5)}
   </footprint>
 }
 
@@ -44,6 +67,9 @@ export function Ice40Sg48Footprint() {
   return <footprint>
     {leads}
     <smtpad shape="rect" pcbX={0} pcbY={0} width="5.4mm" height="5.4mm" portHints={["pin49"]} />
+    {courtyard(8.1, 8.1)}
+    {cornerMarks(3.6, 0.4)}
+    {pin1Dot(-4.0, 3.3)}
   </footprint>
 }
 
@@ -54,6 +80,8 @@ export function TiDrtFootprint() {
     <smtpad shape="rect" pcbX={-0.35} pcbY={-0.425} width="0.3mm" height="0.3mm" portHints={["pin1"]} />
     <smtpad shape="rect" pcbX={0.35} pcbY={-0.425} width="0.3mm" height="0.3mm" portHints={["pin2"]} />
     <smtpad shape="rect" pcbX={0} pcbY={0.425} width="0.3mm" height="0.3mm" portHints={["pin3"]} />
+    {courtyard(1.5, 1.65)}
+    {pin1Dot(-0.75, -0.75, 0.075)}
   </footprint>
 }
 
@@ -63,6 +91,7 @@ export function TiDrtFootprint() {
 // The rear stakes are 1.0 x 2.1 mm with 0.6 x 1.7 mm slots; the front stakes
 // are 1.0 x 1.8 mm with 0.6 x 1.4 mm slots. The board edge belongs 2.6 mm in
 // front of the front stakes (pcbY = -2.6), per the KiCad library's reference line.
+// Body outline, courtyard and side silkscreen follow the same KiCad footprint.
 export function Usb4105Footprint() {
   const contacts = [
     [-3.2, 15, 0.6], [-2.4, 16, 0.6], [-1.75, 17, 0.3],
@@ -79,6 +108,9 @@ export function Usb4105Footprint() {
     <platedhole shape="pill" pcbX={4.32} pcbY={0} outerWidth="1mm" outerHeight="1.8mm" holeWidth="0.6mm" holeHeight="1.4mm" portHints={["pin2"]} />
     <hole shape="circle" diameter="0.65mm" pcbX={-2.89} pcbY={3.68} />
     <hole shape="circle" diameter="0.65mm" pcbX={2.89} pcbY={3.68} />
+    {courtyard(10.64, 8.94, 0, 1.365)}
+    {line("left", [[-4.67, 1.175], [-4.67, 2.875]])}
+    {line("right", [[4.67, 1.175], [4.67, 2.875]])}
   </footprint>
 }
 
@@ -99,5 +131,10 @@ export function Ft2232HlFootprint() {
       height={edge % 2 === 0 ? "0.3mm" : "1.65mm"}
       portHints={[`pin${pin}`]} />
   })
-  return <footprint>{leads}</footprint>
+  return <footprint>
+    {leads}
+    {courtyard(13.3, 13.3)}
+    {cornerMarks(5.1, 0.8)}
+    {pin1Dot(-5.6, 4.5, 0.15)}
+  </footprint>
 }

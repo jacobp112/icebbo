@@ -112,6 +112,42 @@ for (const [name, dx, dy, padSize] of [["U7", 2.2, 1.9, [1.4, 1.2]], ["X2", 2.3,
   for (const p of padsOf(name)) assert.deepEqual(size(p), padSize, `${name} ${p.pin}`)
 }
 
+// Every part carries a courtyard, so the builder's overlap check covers it.
+const withCourtyard = new Set(circuit.filter((e) => e.type.startsWith("pcb_courtyard_")).map((e) => e.pcb_component_id))
+const bare = items("pcb_component").filter((c) => !withCourtyard.has(c.pcb_component_id)).map((c) => pcbNames.get(c.pcb_component_id))
+assert.deepEqual(bare, [], "components without a courtyard")
+
+// Silkscreen stays clear of copper: 0.1 mm for the footprints drawn in
+// footprints.tsx; 0.05 mm for generator footprints, whose SOIC/TSSOP body
+// outline sits at that fixed distance inside the pad rows.
+const customFootprints = new Set(["U1", "U2", "U3", "U4", "U5", "U8", "U12", "J2"])
+const silkGapFor = (owner) => (customFootprints.has(owner) ? 0.1 : 0.05)
+const rectDistance = (x, y, r) => Math.hypot(Math.max(r.x0 - x, 0, x - r.x1), Math.max(r.y0 - y, 0, y - r.y1))
+const segmentDistance = (a, b, r) => {
+  // Sample the segment finely; exact enough at silkscreen scale.
+  const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 0.01))
+  let best = Infinity
+  for (let s = 0; s <= steps; s++) {
+    const t = s / steps
+    best = Math.min(best, rectDistance(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, r))
+  }
+  return best
+}
+const silk = [
+  ...items("pcb_silkscreen_path").flatMap((p) => p.route.slice(1).map((b, i) => ({
+    owner: pcbNames.get(p.pcb_component_id), half: p.stroke_width / 2, dist: (r) => segmentDistance(p.route[i], b, r),
+  }))),
+  ...items("pcb_silkscreen_circle").map((c) => ({
+    owner: pcbNames.get(c.pcb_component_id), half: c.radius, dist: (r) => rectDistance(c.center.x, c.center.y, r),
+  })),
+]
+for (const mark of silk) {
+  for (const p of pads) {
+    const gap = mark.dist(p) - mark.half
+    assert.ok(gap >= silkGapFor(mark.owner) - 1e-9, `${mark.owner} silkscreen is ${gap.toFixed(3)} mm from ${p.owner} ${p.pin}`)
+  }
+}
+
 const pcbErrors = circuit.filter((item) => item.type.startsWith("pcb_") && item.type.endsWith("_error"))
 assert.deepEqual(pcbErrors, [])
 console.log(`PCB placement checked: ${pads.length} copper pads on ${board.width} x ${board.height} mm, >= ${minGap} mm between components, reviewed footprints intact`)

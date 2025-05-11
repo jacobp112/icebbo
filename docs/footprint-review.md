@@ -39,6 +39,23 @@ The board outline grew from 80 × 60 mm to 100 × 70 mm to hold the FTDI section
 
 The 1206 and 0805 case sizes for bulk capacitors are placeholders for the rated, orderable parts still to be selected.
 
+## Courtyards and silkscreen
+
+Each custom footprint has a courtyard rectangle enclosing the larger of its body and its copper, plus 0.25 mm (IPC-7351 nominal):
+
+| Footprint | Courtyard | Silkscreen |
+| --- | --- | --- |
+| TPS7A90 DSK0010A | 3.4 × 3.0 mm | lines above and below the body, pin-1 dot |
+| TPS3890 DSE0006A | 2.4 × 2.0 mm | lines above and below the body, pin-1 dot |
+| iCE40 SG48 | 8.1 × 8.1 mm | body corner marks, pin-1 dot |
+| FT2232HL LQFP-64 | 13.3 × 13.3 mm | body corner marks, pin-1 dot |
+| TI DRT | 1.5 × 1.65 mm | pin-1 dot |
+| USB4105 | 10.64 × 8.94 mm | side lines between the shell stakes |
+
+The USB4105 body outline, courtyard and side marks follow the KiCad library footprint, converted with y = 1.075 − y<sub>KiCad</sub>. The body front sits on the board-edge line, and the courtyard extends 0.5 mm past the edge as the connector mouth overhangs. With courtyards on every part, the builder's overlap check found the FPGA touching C15's courtyard, so C15 moved 0.3 mm.
+
+Silkscreen on these footprints is at least 0.1 mm from copper. The generator's SOIC and TSSOP outlines (U6, U9, U11) sit at a fixed 0.05 mm inside their pad rows. Its only alternative drops all silkscreen, including the pin-1 mark, so they are kept; the fabricator may trim them.
+
 ## Checks run
 
 `hardware/check_schematic.ps1` builds the board with PCB output and autorouting disabled. It runs both targeted netlist checks and `tsci check netlist`, which reports zero errors and zero warnings. It also runs [check_pcb.mjs](../hardware/check_pcb.mjs) on the generated circuit JSON, which asserts that:
@@ -46,6 +63,8 @@ The 1206 and 0805 case sizes for bulk capacitors are placeholders for the rated,
 - every schematic port has a PCB pad
 - all copper stays at least the board's 0.2 mm edge clearance inside the 100 × 70 mm outline
 - pads of different components are at least 0.2 mm apart, compared pad against pad
+- every part has a courtyard
+- silkscreen is at least 0.1 mm from copper on the custom footprints and 0.05 mm on generator footprints
 - each reviewed footprint keeps its pad count and the corrected dimensions above: the DSK and SG48 exposed pads, TPS3890 pad lengths, FT2232HL row spacing, USB4105 stake sizes and edge offset, the SOIC/TSSOP/SOT-23-5 row spacing and pad sizes, the DRT pads, and the oscillator and crystal pitches
 
 The check caught each of these deliberately broken copies of the generated board:
@@ -56,6 +75,9 @@ The check caught each of these deliberately broken copies of the generated board
 - the old 12 mm FT2232HL row spacing
 - the old J2 position
 - a pin with no pad
+- a part without a courtyard
+- a pin-1 dot on a pad
+- a SOIC outline pushed onto its pads
 - U6 back on 150-mil rows
 - the old U9 pad width
 - a SOT-23-sized U12 pad
@@ -65,7 +87,6 @@ The check caught each of these deliberately broken copies of the generated board
 
 ## Open items
 
-- The custom footprints have no courtyard or silkscreen outline yet. The tscircuit builder warns about the missing courtyards.
 - Choose manufacturers for D1 and Q1 and review their footprints. Confirm J1's hole size from JST's individual drawing. The standard 0603/0805/1206 passive patterns are unreviewed.
 - Paste-mask apertures for the exposed pads follow the tool default. The TI drawings recommend reduced-coverage stencils, for example 84 % for DSK0010A.
 - Decoupling placement against each FPGA supply pin, thermal vias, and USB differential routing all wait for routing.
