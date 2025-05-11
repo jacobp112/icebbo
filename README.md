@@ -42,7 +42,7 @@ Alternatively, pass its `bin` directory through `-ToolBin`. The test runner uses
 
 The tscircuit and Bun versions selected for board development are pinned in `package.json` and `package-lock.json`. Install them with `npm ci`, then check the CLI with `npx tsci --version`. Bun is required by the tscircuit CLI on this Windows setup. The RTL simulator and synthesis tool versions will be pinned and reported with their first use.
 
-To build and check the combined tscircuit schematic on Windows after `npm ci`:
+To build the combined tscircuit design with its unrouted PCB, and run the netlist and placement checks, on Windows after `npm ci`:
 
 ```text
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/check_schematic.ps1

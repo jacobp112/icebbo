@@ -5,13 +5,16 @@ $env:PATH = "$bun;$env:PATH"
 
 Push-Location $repo
 try {
-    & (Join-Path $repo 'node_modules\.bin\tsci.cmd') build hardware/power_config.tsx --disable-pcb --disable-parts-engine
+    & (Join-Path $repo 'node_modules\.bin\tsci.cmd') build hardware/power_config.tsx --routing-disabled --disable-parts-engine
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     & node hardware/check_power_config.mjs
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     & node hardware/check_usb_ftdi.mjs
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    & node hardware/check_pcb.mjs
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     $netlist = & (Join-Path $repo 'node_modules\.bin\tsci.cmd') check netlist hardware/power_config.tsx

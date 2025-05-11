@@ -22,13 +22,23 @@ The 1206 and 0805 case sizes for bulk capacitors are placeholders for the rated,
 
 ## Checks run
 
-- `hardware/check_schematic.ps1`: both targeted netlist checks pass, and `tsci check netlist` reports zero errors and zero warnings.
-- `tsci build hardware/power_config.tsx --routing-disabled` with PCB output enabled builds successfully, as does `hardware/footprint_probe.tsx`.
-- A one-off script, not yet in the repository, compared pad extents in the generated circuit JSON:
-  - The pads of any two components are at least 0.2 mm apart.
-  - No pad lies off the board.
-  - Each custom footprint has the expected number of pads: 11, 6, 49, 64, and 12 plus 4 plated stakes.
-  - Every schematic port has a PCB pad.
+`hardware/check_schematic.ps1` builds the board with PCB output and autorouting disabled. It runs both targeted netlist checks and `tsci check netlist`, which reports zero errors and zero warnings. It also runs [check_pcb.mjs](../hardware/check_pcb.mjs) on the generated circuit JSON, which asserts that:
+
+- every schematic port has a PCB pad
+- all copper stays at least the board's 0.2 mm edge clearance inside the 100 × 70 mm outline
+- pads of different components are at least 0.2 mm apart, compared pad against pad
+- each reviewed footprint keeps its pad count and the corrected dimensions above: the DSK and SG48 exposed pads, TPS3890 pad lengths, FT2232HL row spacing, and USB4105 stake sizes and edge offset
+
+The check caught each of these deliberately broken copies of the generated board:
+
+- a pad overlapping another part
+- a pad at the board edge
+- the old TPS3890 pad length
+- the old 12 mm FT2232HL row spacing
+- the old J2 position
+- a pin with no pad
+
+`hardware/footprint_probe.tsx` also builds with PCB output.
 
 ## Open items
 
