@@ -47,6 +47,16 @@ export function Ice40Sg48Footprint() {
   </footprint>
 }
 
+// TI DRT (1.0 x 0.8 mm SOT-9X3) land pattern 4211172/A: three 0.3 mm square
+// pads, pins 1 and 2 on 0.70 mm centres and pin 3 centred 0.85 mm opposite.
+export function TiDrtFootprint() {
+  return <footprint>
+    <smtpad shape="rect" pcbX={-0.35} pcbY={-0.425} width="0.3mm" height="0.3mm" portHints={["pin1"]} />
+    <smtpad shape="rect" pcbX={0.35} pcbY={-0.425} width="0.3mm" height="0.3mm" portHints={["pin2"]} />
+    <smtpad shape="rect" pcbX={0} pcbY={0.425} width="0.3mm" height="0.3mm" portHints={["pin3"]} />
+  </footprint>
+}
+
 // GCT USB4105-GF-A: twelve shared contact pads, four plated shell stakes,
 // and two 0.65 mm locating holes. Coordinates are from the manufacturer's
 // component-side recommended PCB layout (the Y axis is inverted here).

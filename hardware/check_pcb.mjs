@@ -88,6 +88,30 @@ for (const pin of ["pin1", "pin2"]) assert.deepEqual(size(pad("J2", pin)), [1, 1
 for (const pin of ["pin13", "pin14"]) assert.deepEqual(size(pad("J2", pin)), [1, 2.1], `J2 rear stake ${pin}`)
 near(centre(pad("J2", "pin1"))[1] - -board.height / 2, 2.6, "J2 front stakes from board edge")
 
+// Library footprints whose parameters were set from manufacturer drawings.
+const rowSpacing = (name, a, b) => centre(pad(name, b))[0] - centre(pad(name, a))[0]
+const libraryRows = [
+  // [part, pad count, pin on left row, pin on right row, row centres, pad size]
+  ["U6", 8, "pin1", "pin8", 7.175, [1.625, 0.65]],
+  ["U11", 8, "pin1", "pin8", 5.4, [1.55, 0.6]],
+  ["U9", 14, "pin1", "pin14", 5.8, [1.5, 0.45]],
+  ["U10", 5, "pin1", "pin5", 2.6, [1.1, 0.6]],
+]
+for (const [name, count, left, right, spacing, padSize] of libraryRows) {
+  assert.equal(padsOf(name).length, count, `${name} pads`)
+  near(rowSpacing(name, left, right), spacing, `${name} row spacing`)
+  for (const p of padsOf(name)) assert.deepEqual(size(p), padSize, `${name} ${p.pin}`)
+}
+assert.equal(padsOf("U12").length, 3, "U12 DRT pads")
+for (const p of padsOf("U12")) assert.deepEqual(size(p), [0.3, 0.3], `U12 ${p.pin}`)
+near(rowSpacing("U12", "pin1", "pin2"), 0.7, "U12 pin 1-2 spacing")
+near(centre(pad("U12", "pin3"))[1] - centre(pad("U12", "pin1"))[1], 0.85, "U12 pin 3 offset")
+for (const [name, dx, dy, padSize] of [["U7", 2.2, 1.9, [1.4, 1.2]], ["X2", 2.3, 1.75, [1.3, 1.05]]]) {
+  near(rowSpacing(name, "pin1", "pin2"), dx, `${name} pin 1-2 pitch`)
+  near(centre(pad(name, "pin4"))[1] - centre(pad(name, "pin1"))[1], dy, `${name} pin 1-4 pitch`)
+  for (const p of padsOf(name)) assert.deepEqual(size(p), padSize, `${name} ${p.pin}`)
+}
+
 const pcbErrors = circuit.filter((item) => item.type.startsWith("pcb_") && item.type.endsWith("_error"))
 assert.deepEqual(pcbErrors, [])
 console.log(`PCB placement checked: ${pads.length} copper pads on ${board.width} x ${board.height} mm, >= ${minGap} mm between components, reviewed footprints intact`)
