@@ -36,7 +36,7 @@ For USB, the [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/Data
 ## Remaining design checks
 
 - Orderable capacitors are selected. From Murata's typical DC-bias curve, the 22 µF regulator capacitors retain about 12.7–19.6 µF, above the 10 µF minimum; see [part selection](part-selection.md). Guaranteed minima remain open.
-- Calculate rail loads from the selected FPGA configuration, FT2232H, oscillator, flash, and support circuitry. The initial 150/200/30 mA allowances are budgets, not measured current.
+- A data-sheet worst-case load and thermal budget is in [thermal-budget.md](thermal-budget.md). The 3.3 V bound of 257 mA exceeds the earlier 200 mA allowance. All three regulators stay below 125 °C even at twice TI's JEDEC thermal resistance, with U1 the limiting part. The FPGA core current still needs Lattice's Power Calculator.
 - Check the external 5 V supply rating, connector polarity, fuse hold/trip current, Schottky forward loss, reverse-current behavior, and total startup current. Confirm USB VBUS remains a sense input even during fault and suspend states.
 - Resolve power-good low-level noise margin and test startup/brownout sequencing.
 - Review package land patterns, exposed-pad mappings, and full-board netlist before placement. Configuration pins are `CRESET_B` pin 8 and `CDONE` pin 7; the master-SPI pins are 14–17.

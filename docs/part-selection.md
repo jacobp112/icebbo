@@ -65,4 +65,4 @@ The 2.5 V rail sets the requirement. The TPS389025 supervisor holds the FPGA in 
 ## Open items
 
 - Assign LCSC numbers to the ICs, crystal and ferrite beads. They carry manufacturer part numbers only.
-- Recalculate the regulator dissipation with the FT2232H current. For example, at its 150 mA budget the 1.2 V regulator drops about 3.3 V and dissipates about 0.5 W.
+- Regulator dissipation and headroom are in [thermal-budget.md](thermal-budget.md).
