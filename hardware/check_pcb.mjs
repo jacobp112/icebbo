@@ -112,6 +112,16 @@ for (const [name, dx, dy, padSize] of [["U7", 2.2, 1.9, [1.4, 1.2]], ["X2", 2.3,
   for (const p of padsOf(name)) assert.deepEqual(size(p), padSize, `${name} ${p.pin}`)
 }
 
+// D1 (MDD SMA) and Q1 (AOS SOT-23) follow their vendors' land patterns.
+near(rowSpacing("D1", "pin1", "pin2"), 3.9, "D1 pad pitch")
+for (const p of padsOf("D1")) assert.deepEqual(size(p), [1.52, 1.68], `D1 ${p.pin}`)
+near(rowSpacing("Q1", "pin1", "pin3"), 2.4, "Q1 row spacing")
+for (const p of padsOf("Q1")) assert.deepEqual(size(p), [0.8, 0.8], `Q1 ${p.pin}`)
+// The SMA silkscreen bracket closes on pin 1, which must be D1's cathode.
+const d1Source = items("source_component").find((c) => c.name === "D1")
+const d1Pin1 = items("source_port").find((p) => p.source_component_id === d1Source.source_component_id && p.pin_number === 1)
+assert.equal(d1Pin1.name, "K", "D1 pin 1 must be the cathode")
+
 // Every part carries a courtyard, so the builder's overlap check covers it.
 const withCourtyard = new Set(circuit.filter((e) => e.type.startsWith("pcb_courtyard_")).map((e) => e.pcb_component_id))
 const bare = items("pcb_component").filter((c) => !withCourtyard.has(c.pcb_component_id)).map((c) => pcbNames.get(c.pcb_component_id))

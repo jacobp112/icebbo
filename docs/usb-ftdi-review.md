@@ -15,13 +15,13 @@ The input connector's mechanical polarity, fuse trip/hold behavior, diode rating
 | Function | Schematic connection | Source |
 | --- | --- | --- |
 | FTDI 3.3 V inputs | `VREGIN` pin 50 and `VCCIO` pins 20, 31, 42, 56 directly on `V3V3`; `VPHY` pin 4 and `VPLL` pin 9 via separate ferrite beads | [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf) |
-| FTDI 1.8 V core | `VREGOUT` pin 49 to `VCORE` pins 12, 37, 64, with 3.3 µF and 100 nF nominal local capacitors | [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf) |
+| FTDI 1.8 V core | `VREGOUT` pin 49 to `VCORE` pins 12, 37, 64, with 4.7 µF and 100 nF nominal local capacitors | [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf) |
 | USB and reference | D− pin 7, D+ pin 8; `REF` pin 6 to ground through 12 kΩ; `RESET#` pin 14 pulled to 3.3 V through 1 kΩ; `TEST` pin 13 grounded | [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf) |
 | FTDI clock | 12 MHz ABM8-12.000MHZ-B2-T crystal between OSCI pin 2 and OSCO pin 3, each side with 27 pF to ground | [Abracon ABM8](https://abracon.com/parametric/crystals/ABM8-12.000MHZ-B2-T) |
 | EEPROM | 93LC46B-I/SN in fixed 16-bit mode. FTDI EECS/EECLK to CS/CLK, EEDATA to DI, and DO through 2.2 kΩ to EEDATA; 10 kΩ pulls on EECS, EECLK and DO | [Microchip 93LC46B data sheet](https://ww1.microchip.com/downloads/aemDocuments/documents/MPD/ProductDocuments/DataSheets/93AA46A-B-C-93LC46A-B-C-93C46A-B-C-1-Kbit-Microwire-Compatible-Serial-EEPROM-Data-Sheet-DS20001749.pdf), [FT2232H Figure 6.3](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf) |
 | USB ESD and CC | TPD2EUSB30ADRTR on D+/D−; separate 5.1 kΩ Rd resistors on CC1 and CC2 | [TI TPD2EUSB30A data sheet](https://www.ti.com/lit/ds/symlink/tpd2eusb30a.pdf) |
 
-The 27 pF crystal capacitors yield approximately 13.5 pF from the two equal capacitors in series; allowing approximately 5 pF board/pin stray capacitance gives 18.5 pF, close to the crystal's stated 18 pF load. Stray capacitance is a layout assumption, so oscillation margin and clock accuracy require later review. The 3.3 µF FTDI output capacitor is a **nominal** value; its effective value under bias and tolerance must meet FTDI's minimum.
+The 27 pF crystal capacitors yield approximately 13.5 pF from the two equal capacitors in series; allowing approximately 5 pF board/pin stray capacitance gives 18.5 pF, close to the crystal's stated 18 pF load. Stray capacitance is a layout assumption, so oscillation margin and clock accuracy require later review. The FTDI VCORE capacitor is now 4.7 µF nominal so that tolerance and DC-bias loss still leave at least FTDI's 3.3 µF minimum; see [part selection](part-selection.md).
 
 ## Flash ownership and initial FTDI state
 

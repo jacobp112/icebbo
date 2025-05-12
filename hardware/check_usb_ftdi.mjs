@@ -27,7 +27,7 @@ const expect = (ref, net) => assert.equal(connections.get(ref), net, ref)
 const expected = {
   "J1.1":"EXT_5V", "J1.2":"GND",
   "F1.1":"EXT_5V", "F1.2":"FUSED_5V",
-  "D1.1":"FUSED_5V", "D1.2":"P5V",
+  "D1.1":"P5V", "D1.2":"FUSED_5V",
   "J2.15":"GND", "J2.16":"USB_VBUS", "J2.18":"USB_CC1",
   "J2.19":"USB_DM", "J2.20":"USB_DP", "J2.21":"USB_DM",
   "J2.22":"USB_DP", "J2.24":"USB_CC2", "J2.25":"USB_VBUS",
@@ -70,7 +70,7 @@ for (const pin of [1, 5, 10, 11, 15, 25, 35, 47, 51]) expect(`U8.${pin}`, "GND")
 for (const pin of [13, 14]) expect(`J2.${pin}`, "GND")
 for (const pin of [17, 23]) assert.equal(connections.has(`J2.${pin}`), false, "USB-C SBU left open")
 for (const pin of [6, 7]) assert.equal(connections.has(`U11.${pin}`), false, "EEPROM NC left open")
-assert.notEqual(connections.get("J2.16"), connections.get("D1.2"), "USB VBUS must not power P5V")
+assert.notEqual(connections.get("J2.16"), connections.get("D1.1"), "USB VBUS must not power P5V")
 
 // A high OE requires both the request pulled low and the FPGA reset observed low.
 for (const resetN of [0, 1]) {

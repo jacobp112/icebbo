@@ -35,7 +35,7 @@ For USB, the [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/Data
 
 ## Remaining design checks
 
-- Select actual capacitor orderable parts and verify effective 10 µF minimum under voltage and tolerance.
+- Orderable capacitors are selected. From Murata's typical DC-bias curve, the 22 µF regulator capacitors retain about 12.7–19.6 µF, above the 10 µF minimum; see [part selection](part-selection.md). Guaranteed minima and the 8.2 nF stock remain open.
 - Calculate rail loads from the selected FPGA configuration, FT2232H, oscillator, flash, and support circuitry. The initial 150/200/30 mA allowances are budgets, not measured current.
 - Check the external 5 V supply rating, connector polarity, fuse hold/trip current, Schottky forward loss, reverse-current behavior, and total startup current. Confirm USB VBUS remains a sense input even during fault and suspend states.
 - Resolve power-good low-level noise margin and test startup/brownout sequencing.

@@ -2,6 +2,7 @@ import React from "react"
 import { UsbFtdi } from "./usb_ftdi"
 import { Ice40Sg48Footprint, Tps3890DseFootprint, Tps7a90DskFootprint } from "./footprints"
 import { at } from "./placement"
+import { capacitorProps } from "./parts"
 
 // Electrical capture for the FPGA power, clock and master-SPI boot path.
 // Package land patterns and board placement are provisional until PCB review.
@@ -112,7 +113,7 @@ export default function PowerConfig() {
     <chip name="U6" {...at("U6")} manufacturerPartNumber="W25Q16JVSSIQ" footprint="soic8_w8.8mm_p1.27mm_pl1.625mm_pw0.65mm" pinLabels={{pin1:"CS_N",pin2:"DO",pin3:"WP_N",pin4:"GND",pin5:"DI",pin6:"CLK",pin7:"HOLD_N",pin8:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
     <chip name="U7" {...at("U7")} manufacturerPartNumber="SiT8008BI-23-33E-48.000000" footprint="crystal4_px2.2mm_py1.9mm_pw1.4mm_ph1.2mm" pinLabels={{pin1:"OE",pin2:"GND",pin3:"OUT",pin4:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
     {resistors.map(([name, resistance]) => <resistor key={name} name={name} {...at(name)} resistance={resistance} footprint="0603" />)}
-    {capacitors.map(([name, capacitance]) => <capacitor key={name} name={name} {...at(name)} capacitance={capacitance} footprint={Number(name.slice(1)) <= 6 ? "1206" : (capacitance === "4.7uF" ? "0805" : "0603")} />)}
+    {capacitors.map(([name, capacitance]) => <capacitor key={name} name={name} {...at(name)} capacitance={capacitance} {...capacitorProps(capacitance)} />)}
     {links.map(([port, net], i) => <trace key={`ic-${i}`} from={port} to={`net.${net}`} />)}
     {resistors.flatMap(([name,, a,b]) => [
       <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${a}`} />,

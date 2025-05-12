@@ -29,7 +29,8 @@ The remaining non-passive parts use tscircuit footprint-generator strings. Their
 | X2 ABM8-12.000MHZ-B2-T | 3.2 × 2.5 mm 4-pad crystal | [Abracon ABM8](https://abracon.com/Resonators/abm8.pdf) recommended land pattern | **Corrected** to 1.3 × 1.05 mm pads with a 1.0 × 0.7 mm gap, which gives centres of 2.3 × 1.75 mm. The default had 1.4 × 1.2 mm pads with a 0.8 × 0.5 mm gap. |
 | F1 MF-PSMF110X-2 | **0805** PTC | [Bourns MF-PSMF](https://www.bourns.com/docs/Product-Datasheets/mfpsmf.pdf): body 2.00–2.30 × 1.20–1.50 mm, "PSMF = 0805 Surface Mount" | **Corrected** from a 1206 footprint to 0805. Bourns gives Ihold as 1.10 A at 23 °C but only 0.65 A at 70 °C. That derating belongs in the power review. |
 | J1 B2B-PH-K-S | JST PH, 2 × 2.0 mm, through-hole | [JST PH catalogue](https://www.jst-mfg.com/product/pdf/eng/ePH.pdf) | The 2.0 mm pitch and 5.9 × 4.5 mm body are consistent. The catalogue gives no PCB hole size; the generic 1.0 mm hole with 1.5 mm pad is **unverified** against JST's individual drawing. |
-| D1 SS14, Q1 2N7002 | SMA, SOT-23 | — | **Unverified.** Both part numbers are multi-vendor, and no manufacturer has been chosen. The generic `sma` and `sot23` patterns stay until an orderable part is fixed. |
+| D1 MDD SS14 | SMA (DO-214AC) | MDD/NextGen [SS14 specification sheet](https://www.mdddiodes.com/wp-content/uploads/2022/08/SMASS140000S14.pdf), recommended pad layout | **Corrected** to 1.52 × 1.68 mm pads on 3.9 mm centres, 5.45 mm overall. The generic `sma` pads were 2.5 × 1.8 mm on 4.0 mm centres. Pin 1 is now the cathode, matching the footprint's polarity bracket; see [part selection](part-selection.md). |
+| Q1 AOS AO3400A | SOT-23 | AOS [SOT23 package outline PO-00001](https://www.aosmd.com/sites/default/files/res/package/SOT23.pdf), recommended land pattern | **Corrected** to 0.80 mm square pads, 0.95 mm from centre along the row, rows 2.40 mm apart. The generic `sot23` pads were 1.325 × 0.6 mm on 2.275 mm rows. |
 
 The pin order of U7 and X2 (1 → 2 along the long pitch, counter-clockwise from above) and of U6, U9, U10 and U11 matches their data-sheet top views. The tscircuit builder's courtyard check first flagged U6 against C23 and C24; that clash is resolved by the move.
 
@@ -78,6 +79,8 @@ The check caught each of these deliberately broken copies of the generated board
 - a part without a courtyard
 - a pin-1 dot on a pad
 - a SOIC outline pushed onto its pads
+- D1 with the anode on pin 1
+- a generic-size Q1 pad
 - U6 back on 150-mil rows
 - the old U9 pad width
 - a SOT-23-sized U12 pad
@@ -87,6 +90,6 @@ The check caught each of these deliberately broken copies of the generated board
 
 ## Open items
 
-- Choose manufacturers for D1 and Q1 and review their footprints. Confirm J1's hole size from JST's individual drawing. The standard 0603/0805/1206 passive patterns are unreviewed.
+- Confirm J1's hole size from JST's individual drawing. The standard 0603/0805/1206 passive patterns are unreviewed.
 - Paste-mask apertures for the exposed pads follow the tool default. The TI drawings recommend reduced-coverage stencils, for example 84 % for DSK0010A.
 - Decoupling placement against each FPGA supply pin, thermal vias, and USB differential routing all wait for routing.
