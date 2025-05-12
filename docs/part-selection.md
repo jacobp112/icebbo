@@ -8,7 +8,7 @@ At the initial rail budgets of 150, 200 and 30 mA, plus FT2232H operation, the l
 
 | Ref | Part | LCSC | Basis |
 | --- | --- | --- | --- |
-| F1 | Bourns MF-PSMF110X-2 (0805 PTC) | not confirmed | [Bourns MF-PSMF](https://www.bourns.com/docs/Product-Datasheets/mfpsmf.pdf) derating table: Ihold 1.10 A at 23 °C and 0.92 A at 40 °C, twice the 0.45 A load at the 40 °C bench limit. It falls to 0.65 A at 70 °C and 0.52 A at 85 °C, so an industrial rating would need a larger fuse. |
+| F1 | Bourns MF-PSMF110X-2 (0805 PTC) | C89658 | [Bourns MF-PSMF](https://www.bourns.com/docs/Product-Datasheets/mfpsmf.pdf) derating table: Ihold 1.10 A at 23 °C and 0.92 A at 40 °C, twice the 0.45 A load at the 40 °C bench limit. It falls to 0.65 A at 70 °C and 0.52 A at 85 °C, so an industrial rating would need a larger fuse. |
 | D1 | MDD SS14 (SMA) | C2480 | 40 V, 1 A Schottky; 0.55 V at 1 A per LCSC. At 0.45 A its drop leaves `P5V` near 4.5 V, which is enough headroom for the 3.3 V regulator. |
 
 D1's schematic **pin 1 is the cathode**. Before this change, pin 1 was the anode. The SMA footprint's silkscreen bracket, and the usual distributor orientation for SMA diodes, both mark pin 1 as the cathode, so the diode would have been assembled reversed and blocked the 5 V input. `check_pcb.mjs` now asserts the pin 1 = cathode mapping.
@@ -28,7 +28,7 @@ Q1 lets FTDI ACBUS6 pull the TPS3890 `MR` input low through a 10 kΩ pull-up. Th
 | 4.7 µF 25 V X5R ±10% | Samsung CL21A475KAQNNNE | 0805 | C1779 | FPGA and FTDI bulk, FTDI VCORE |
 | 100 nF 50 V X7R ±10% | Samsung CL10B104KB8NNNC | 0603 | C1591 | local decoupling |
 | 10 nF 50 V X7R ±10% | Samsung CL10B103KB8NNNC | 0603 | C1589 | C10, supervisor delay |
-| 8.2 nF 50 V X7R ±10% | Samsung CL10B822KB8NNNC | 0603 | **not confirmed** | C7–C9, regulator soft-start |
+| 6.8 nF 50 V X7R ±10% | Fenghua 0603B682K500NT | 0603 | C1631 | C7–C9, regulator soft-start |
 | 27 pF 50 V C0G ±5% | Samsung CL10C270JB8NNNC | 0603 | C1656 | C42–C43, FTDI crystal load |
 
 The Samsung 22 µF part used before (CL31A226KAHNNNE, C12891) was out of stock at LCSC, so the Murata part replaces it.
@@ -46,10 +46,23 @@ Even at a 5.25 V input and a few percent temperature loss, the inputs stay near 
 
 **FTDI VCORE.** C34 was 3.3 µF nominal, but FTDI requires at least 3.3 µF effective, and any tolerance or bias loss would breach that. It is now 4.7 µF. No DC-bias curve has been reviewed for the Samsung 4.7 µF part at 1.8 V, so this remains an assumption: a 10 % tolerance plus about 15 % bias loss still leaves 3.6 µF.
 
-**Soft-start.** The ramp calculation in [power-design.md](power-design.md) needs ±10 % or better on C7–C9. A 10 nF substitute would move the 1.2 V ramp's lower bound to about 0.55 V/ms, below Lattice's 0.6 V/ms minimum, so 8.2 nF stays even though its LCSC stock number is unconfirmed.
+**Soft-start.** No stocked 8.2 nF 0603 part could be confirmed at LCSC, and 10 nF would move the 1.2 V ramp's lower bound to about 0.55 V/ms, below Lattice's 0.6 V/ms minimum. With 6.8 nF ±10 %, TI's 4–9 µA soft-start current and the updated rail voltages, the ideal ramps are 0.80–2.20 V/ms (1.2 V), 2.22–6.12 V/ms (3.3 V) and 1.71–4.71 V/ms (2.5 V). All three sit inside Lattice's 0.6–10 V/ms, and the 1.2 V lower bound improves on the earlier 0.665 V/ms.
+
+## Resistors
+
+All 31 resistors are 0603 ±1 % 100 mW ±100 ppm/°C thick film, listed in [parts.ts](../hardware/parts.ts). UNI-ROYAL `0603WAF` parts are used for every value except 10 kΩ. That value's UNI-ROYAL part (C25804) was out of stock at LCSC, so it uses Yageo RC0603FR-0710KL (C98220).
+
+**Feedback dividers.** The earlier design assumed 0.1 % resistors, and its 312 kΩ and 213 kΩ values are rare E192 values. TI specifies the TPS7A90 output accuracy as ±1.0 %, excluding external resistors. A divider with top resistor R<sub>T</sub> and bottom R<sub>B</sub>, both ±1 %, adds up to ±2 % × R<sub>T</sub>/(R<sub>T</sub>+R<sub>B</sub>).
+
+| Rail | Divider | Nominal | Static range with 1 % | Limit |
+| --- | --- | --- | --- | --- |
+| 1.2 V | 49.9k / 100k | 1.199 V | 1.179–1.219 V | FPGA VCC 1.14–1.26 V |
+| 3.3 V | **316k** / 100k (was 312k) | 3.328 V | 3.244–3.412 V | FPGA I/O 3.14–3.46 V |
+| 2.5 V | **220k** / 100k (was 213k) | 2.56 V | 2.499–2.621 V | TPS389025 release ≤ 2.438 V; VPP ≤ 3.46 V |
+
+The 2.5 V rail sets the requirement. The TPS389025 supervisor holds the FPGA in reset until `VPP_2V5` exceeds its rising threshold, up to 2.438 V. With the old 213k and 1 % parts, the rail could sit only 7 mV above that. With 220k the static margin is 61 mV. A worst-case ±100 ppm/°C mismatch across 0–40 °C removes about 5 mV more. The 3.3 V change replaces a rare E192 value with a stocked E96 one while keeping 40–100 mV of margin to the I/O limits. Neither rail needs 0.1 % parts. The regulator power-good thresholds, as a percentage of nominal, and the sequencing analysis are unchanged.
 
 ## Open items
 
-- Confirm LCSC or global-sourcing availability for the 8.2 nF capacitors and F1.
-- Choose the 0.1 % feedback resistors and the other resistors.
+- Assign LCSC numbers to the ICs, crystal and ferrite beads. They carry manufacturer part numbers only.
 - Recalculate the regulator dissipation with the FT2232H current. For example, at its 150 mA budget the 1.2 V regulator drops about 3.3 V and dissipates about 0.5 W.

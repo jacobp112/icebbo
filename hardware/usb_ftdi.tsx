@@ -1,7 +1,7 @@
 import React from "react"
 import { Ft2232HlFootprint, TiDrtFootprint, Usb4105Footprint } from "./footprints"
 import { at } from "./placement"
-import { capacitorProps } from "./parts"
+import { capacitorProps, resistorProps } from "./parts"
 
 // Self-powered FT2232H host interface. Package land patterns are provisional.
 const ftdiPins = {
@@ -105,7 +105,7 @@ const capacitors = [
 export function UsbFtdi() {
   return <>
     <connector name="J1" {...at("J1")} manufacturerPartNumber="B2B-PH-K-S(LF)(SN)" footprint="pinrow2_p2mm" pinLabels={{pin1:"VIN",pin2:"GND"}} />
-    <chip name="F1" {...at("F1")} manufacturerPartNumber="MF-PSMF110X-2" footprint="0805" pinLabels={{pin1:"IN",pin2:"OUT"}} />
+    <chip name="F1" {...at("F1")} manufacturerPartNumber="MF-PSMF110X-2" supplierPartNumbers={{jlcpcb: ["C89658"]}} footprint="0805" pinLabels={{pin1:"IN",pin2:"OUT"}} />
     <chip name="D1" {...at("D1")} manufacturerPartNumber="SS14" supplierPartNumbers={{jlcpcb: ["C2480"]}} footprint="sma_p3.9mm_pl1.52mm_pw1.68mm" pinLabels={{pin1:"K",pin2:"A"}} />
     <connector name="J2" {...at("J2")} standard="usb_c" manufacturerPartNumber="USB4105-GF-A" footprint={<Usb4105Footprint />} pinLabels={{pin1:"SHELL3",pin2:"SHELL4",pin13:"SHELL1",pin14:"SHELL2",pin15:"GND1",pin16:"VBUS1",pin17:"SBU2",pin18:"CC1",pin19:"DM2",pin20:"DP1",pin21:"DM1",pin22:"DP2",pin23:"SBU1",pin24:"CC2",pin25:"VBUS2",pin26:"GND2"}} />
     <chip name="U12" {...at("U12")} manufacturerPartNumber="TPD2EUSB30ADRTR" footprint={<TiDrtFootprint />} pinLabels={{pin1:"DP",pin2:"DM",pin3:"GND"}} pinAttributes={{GND:{requiresGround:true}}} />
@@ -117,7 +117,7 @@ export function UsbFtdi() {
     <chip name="X2" {...at("X2")} manufacturerPartNumber="ABM8-12.000MHZ-B2-T" footprint="crystal4_px2.3mm_py1.75mm_pw1.3mm_ph1.05mm" pinLabels={{pin1:"X1",pin2:"GND1",pin3:"X2",pin4:"GND2"}} />
     <chip name="FB1" {...at("FB1")} manufacturerPartNumber="BLM18AG601SN1D" footprint="0603" pinLabels={{pin1:"IN",pin2:"OUT"}} />
     <chip name="FB2" {...at("FB2")} manufacturerPartNumber="BLM18AG601SN1D" footprint="0603" pinLabels={{pin1:"IN",pin2:"OUT"}} />
-    {resistors.map(([name,value])=><resistor key={name} name={name} {...at(name)} resistance={value} footprint="0603" />)}
+    {resistors.map(([name,value])=><resistor key={name} name={name} {...at(name)} resistance={value} {...resistorProps(value)} />)}
     {capacitors.map(([name,value])=><capacitor key={name} name={name} {...at(name)} capacitance={value} {...capacitorProps(value)} />)}
     {links.map(([port,net],i)=><trace key={`usb-${i}`} from={port} to={`net.${net}`} />)}
     {resistors.flatMap(([name,,a,b])=>[

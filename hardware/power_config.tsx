@@ -2,7 +2,7 @@ import React from "react"
 import { UsbFtdi } from "./usb_ftdi"
 import { Ice40Sg48Footprint, Tps3890DseFootprint, Tps7a90DskFootprint } from "./footprints"
 import { at } from "./placement"
-import { capacitorProps } from "./parts"
+import { capacitorProps, resistorProps } from "./parts"
 
 // Electrical capture for the FPGA power, clock and master-SPI boot path.
 // Package land patterns and board placement are provisional until PCB review.
@@ -70,8 +70,8 @@ const links: Link[] = [
 
 const resistors = [
   ["R1", "49.9k", "V1V2", "FB_CORE"], ["R2", "100k", "FB_CORE", "GND"],
-  ["R3", "312k", "V3V3", "FB_IO"], ["R4", "100k", "FB_IO", "GND"],
-  ["R5", "213k", "V2V5", "FB_VPP"], ["R6", "100k", "FB_VPP", "GND"],
+  ["R3", "316k", "V3V3", "FB_IO"], ["R4", "100k", "FB_IO", "GND"],
+  ["R5", "220k", "V2V5", "FB_VPP"], ["R6", "100k", "FB_VPP", "GND"],
   ["R7", "10k", "V1V2", "CORE_GOOD"],
   ["R8", "10k", "V3V3", "IO_GOOD"],
   ["R9", "10k", "V2V5", "VPP_GOOD"],
@@ -90,8 +90,8 @@ const capacitors = [
   ["C1", "22uF", "P5V"], ["C2", "22uF", "V1V2"],
   ["C3", "22uF", "P5V"], ["C4", "22uF", "V3V3"],
   ["C5", "22uF", "P5V"], ["C6", "22uF", "V2V5"],
-  ["C7", "8.2nF", "SS_CORE"], ["C8", "8.2nF", "SS_IO"],
-  ["C9", "8.2nF", "SS_VPP"], ["C10", "10nF", "RESET_DELAY"],
+  ["C7", "6.8nF", "SS_CORE"], ["C8", "6.8nF", "SS_IO"],
+  ["C9", "6.8nF", "SS_VPP"], ["C10", "10nF", "RESET_DELAY"],
   ["C11", "4.7uF", "V1V2"], ["C12", "100nF", "V1V2"],
   ["C13", "4.7uF", "V1V2"], ["C14", "100nF", "V1V2"],
   ["C15", "4.7uF", "VPLL"], ["C16", "100nF", "VPLL"],
@@ -112,7 +112,7 @@ export default function PowerConfig() {
     <chip name="U5" {...at("U5")} manufacturerPartNumber="iCE40UP5K-SG48I" footprint={<Ice40Sg48Footprint />} pinLabels={fpgaPins} pinAttributes={{VCC_A:{requiresPower:true},VCC_B:{requiresPower:true},VCCPLL:{requiresPower:true},VCCIO0:{requiresPower:true},VCCIO2:{requiresPower:true},SPI_VCCIO1:{requiresPower:true},VPP_2V5:{requiresPower:true},GND_EP:{requiresGround:true}}} />
     <chip name="U6" {...at("U6")} manufacturerPartNumber="W25Q16JVSSIQ" footprint="soic8_w8.8mm_p1.27mm_pl1.625mm_pw0.65mm" pinLabels={{pin1:"CS_N",pin2:"DO",pin3:"WP_N",pin4:"GND",pin5:"DI",pin6:"CLK",pin7:"HOLD_N",pin8:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
     <chip name="U7" {...at("U7")} manufacturerPartNumber="SiT8008BI-23-33E-48.000000" footprint="crystal4_px2.2mm_py1.9mm_pw1.4mm_ph1.2mm" pinLabels={{pin1:"OE",pin2:"GND",pin3:"OUT",pin4:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
-    {resistors.map(([name, resistance]) => <resistor key={name} name={name} {...at(name)} resistance={resistance} footprint="0603" />)}
+    {resistors.map(([name, resistance]) => <resistor key={name} name={name} {...at(name)} resistance={resistance} {...resistorProps(resistance)} />)}
     {capacitors.map(([name, capacitance]) => <capacitor key={name} name={name} {...at(name)} capacitance={capacitance} {...capacitorProps(capacitance)} />)}
     {links.map(([port, net], i) => <trace key={`ic-${i}`} from={port} to={`net.${net}`} />)}
     {resistors.flatMap(([name,, a,b]) => [
