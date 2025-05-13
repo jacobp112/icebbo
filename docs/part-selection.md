@@ -62,7 +62,30 @@ All 31 resistors are 0603 ±1 % 100 mW ±100 ppm/°C thick film, listed in [part
 
 The 2.5 V rail sets the requirement. The TPS389025 supervisor holds the FPGA in reset until `VPP_2V5` exceeds its rising threshold, up to 2.438 V. With the old 213k and 1 % parts, the rail could sit only 7 mV above that. With 220k the static margin is 61 mV. A worst-case ±100 ppm/°C mismatch across 0–40 °C removes about 5 mV more. The 3.3 V change replaces a rare E192 value with a stocked E96 one while keeping 40–100 mV of margin to the I/O limits. Neither rail needs 0.1 % parts. The regulator power-good thresholds, as a percentage of nominal, and the sequencing analysis are unchanged.
 
+## ICs, crystal, beads and connectors
+
+Every non-passive part also has an LCSC number, except the two marked **not stocked**. Stock was checked when these were chosen and will change.
+
+| Ref | Part | LCSC | Note |
+| --- | --- | --- | --- |
+| U1–U3 | TI TPS7A9001DSKR | C840111 | |
+| U4 | TI TPS389025DSER | **not stocked** | LCSC lists no 2.5 V variant, and the adjustable TPS389001DSER is out of stock. Use JLCPCB global sourcing or supply it yourself, or redesign around a stocked supervisor with a threshold of at least 2.30 V. |
+| U5 | Lattice iCE40UP5K-SG48I | C2678152 | about 500 in stock |
+| U6 | Winbond W25Q16JVSSIQ (208-mil SOIC) | C82317 | |
+| U7 | SiTime SiT8008BI-23-33E-48.000000 | **not stocked** | LCSC carries this family in 3225 only at other frequencies, for example 50 MHz. The 48 MHz clock is built into the RTL and UART timing, so frequency is not a free substitution. Source it through JLCPCB global sourcing or a SiTime distributor. |
+| U8 | FTDI FT2232HL-REEL | C27882 | The orderable name of the FT2232HL in tape and reel. |
+| U9 | TI SN74LVC126APWR | C7815 | |
+| U10 | TI SN74LVC1G02DBVR | C16360 | |
+| U11 | Microchip 93LC46BT-I/SN | C16253 | The tape-and-reel form of the 93LC46B-I/SN. |
+| U12 | TI TPD2EUSB30ADRTR | C94934 | **low stock**, 137 at selection |
+| X2 | Abracon ABM8-12.000MHZ-B2-T | C596894 | **low stock**, 25 at selection |
+| FB1, FB2 | Murata BLM18AG601SN1D | C19330 | |
+| J1 | JST B2B-PH-K-S(LF)(SN) | C131337 | |
+| J2 | GCT USB4105-GF-A-120 | C5184243 | The plain USB4105-GF-A (C3020560) was out of stock. The -120 suffix means 1.20 mm shell stakes instead of 0.95 mm, per the stake-length options on GCT's drawing. The land pattern is the same, and the stakes suit a 1.6 mm board. |
+
+`check_pcb.mjs` requires a manufacturer part number on every part, and a JLCPCB number on every part except U4 and U7.
+
 ## Open items
 
-- Assign LCSC numbers to the ICs, crystal and ferrite beads. They carry manufacturer part numbers only.
+- Decide how to source U4 and U7: global sourcing, supplied parts, or a stocked redesign. Re-check the low-stock U12 and X2 before ordering.
 - Regulator dissipation and headroom are in [thermal-budget.md](thermal-budget.md).

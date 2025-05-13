@@ -122,6 +122,13 @@ const d1Source = items("source_component").find((c) => c.name === "D1")
 const d1Pin1 = items("source_port").find((p) => p.source_component_id === d1Source.source_component_id && p.pin_number === 1)
 assert.equal(d1Pin1.name, "K", "D1 pin 1 must be the cathode")
 
+// Every part has a manufacturer number, and all but the two parts LCSC does
+// not stock carry a JLCPCB number (docs/part-selection.md).
+const withoutMpn = items("source_component").filter((c) => !c.manufacturer_part_number && !/simple_(resistor|capacitor)/.test(c.ftype)).map((c) => c.name)
+assert.deepEqual(withoutMpn, [], "parts without a manufacturer part number")
+const notStocked = items("source_component").filter((c) => !c.supplier_part_numbers?.jlcpcb?.length).map((c) => c.name).sort()
+assert.deepEqual(notStocked, ["U4", "U7"], "parts without a JLCPCB number")
+
 // Every resistor and capacitor is an orderable JLCPCB part (hardware/parts.ts).
 const passives = items("source_component").filter((c) => /simple_(resistor|capacitor)/.test(c.ftype))
 const unsourced = passives.filter((c) => !c.manufacturer_part_number || !c.supplier_part_numbers?.jlcpcb?.length).map((c) => c.name)
