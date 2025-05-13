@@ -31,7 +31,7 @@ P = (V<sub>IN</sub> − V<sub>OUT</sub>) × I<sub>LOAD</sub> + V<sub>IN</sub> ×
 
 All three stay below TI's 125 °C maximum junction temperature. **U1 is the limiting part.** At the pessimistic thermal resistance it leaves only about 7 °C, and it relies on the 150 mA core budget, which is likely far above what a small design at 48 MHz draws. At the typical 3.3 V load, U2 dissipates about 0.21 W.
 
-**Layout requirement.** The TI figure assumes each exposed pad is soldered and tied to internal ground planes, as TI's layout guidance recommends. U1, U2 and U3 each need a via array from the thermal pad to the ground planes. They sit about 10 mm apart and together dissipate up to about 1.2 W, so the surrounding ground copper should be kept continuous.
+**Layout requirement.** The TI figure assumes each exposed pad is soldered and tied to internal ground planes, as TI's layout guidance recommends. U1, U2 and U3 each carry two 0.3 mm-drill thermal vias in the exposed pad, part of the footprint, into the inner-1 ground plane. TI's layout shows room for more, and a denser array would lower the thermal resistance further. The regulators sit about 10 mm apart and together dissipate up to about 1.2 W, so the surrounding ground copper should be kept continuous.
 
 ## Input headroom and protection
 

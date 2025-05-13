@@ -3,6 +3,7 @@ import { UsbFtdi } from "./usb_ftdi"
 import { Ice40Sg48Footprint, Tps3890DseFootprint, Tps7a90DskFootprint } from "./footprints"
 import { at } from "./placement"
 import { capacitorProps, resistorProps } from "./parts"
+import { traceWidth } from "./routing"
 
 // Electrical capture for the FPGA power, clock and master-SPI boot path.
 // Package land patterns and board placement are provisional until PCB review.
@@ -57,7 +58,8 @@ const links: Link[] = [
   ["U5.CDONE", "FPGA_CDONE"], ["U5.SPI_SO", "FLASH_MOSI"],
   ["U5.SPI_SCK", "FLASH_SCK"], ["U5.SPI_SS", "FLASH_CS_N"],
   ["U5.SPI_SI", "FLASH_MISO"], ["U5.IOT46B_G0", "CLK48"],
-  ["U5.IOT44B", "HOST_UART_TX"], ["U5.IOT42B", "HOST_UART_RX"],
+  // Host UART on the bank-2 pins that face the FT2232H (pins 12 and 11).
+  ["U5.IOB22A", "HOST_UART_TX"], ["U5.IOB20A", "HOST_UART_RX"],
   // U6: W25Q16JVSSIQ. /WP and /HOLD are inactive for single-bit SPI.
   ["U6.CS_N", "FLASH_CS_N"], ["U6.DO", "FLASH_MISO"],
   ["U6.WP_N", "FLASH_WP_N"], ["U6.GND", "GND"],
@@ -104,6 +106,9 @@ const capacitors = [
 
 export default function PowerConfig() {
   return <board width="100mm" height="70mm" layers={4}>
+    {/* Inner planes: a solid ground reference and the widest supply rail. */}
+    <copperpour layer="inner1" connectsTo="net.GND" unbroken />
+    <copperpour layer="inner2" connectsTo="net.V3V3" unbroken />
     <schematicsheet name="power_config" sheetSize="ANSI_B">
     <chip name="U1" {...at("U1")} manufacturerPartNumber="TPS7A9001DSKR" supplierPartNumbers={{jlcpcb: ["C840111"]}} footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
     <chip name="U2" {...at("U2")} manufacturerPartNumber="TPS7A9001DSKR" supplierPartNumbers={{jlcpcb: ["C840111"]}} footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
@@ -114,14 +119,14 @@ export default function PowerConfig() {
     <chip name="U7" {...at("U7")} manufacturerPartNumber="SiT8008BI-23-33E-48.000000" footprint="crystal4_px2.2mm_py1.9mm_pw1.4mm_ph1.2mm" pinLabels={{pin1:"OE",pin2:"GND",pin3:"OUT",pin4:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
     {resistors.map(([name, resistance]) => <resistor key={name} name={name} {...at(name)} resistance={resistance} {...resistorProps(resistance)} />)}
     {capacitors.map(([name, capacitance]) => <capacitor key={name} name={name} {...at(name)} capacitance={capacitance} {...capacitorProps(capacitance)} />)}
-    {links.map(([port, net], i) => <trace key={`ic-${i}`} from={port} to={`net.${net}`} />)}
+    {links.map(([port, net], i) => <trace key={`ic-${i}`} from={port} to={`net.${net}`} thickness={traceWidth(net)} />)}
     {resistors.flatMap(([name,, a,b]) => [
-      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${a}`} />,
-      <trace key={`${name}-2`} from={`${name}.pin2`} to={`net.${b}`} />,
+      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${a}`} thickness={traceWidth(a)} />,
+      <trace key={`${name}-2`} from={`${name}.pin2`} to={`net.${b}`} thickness={traceWidth(b)} />,
     ])}
     {capacitors.flatMap(([name,, net]) => [
-      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${net}`} />,
-      <trace key={`${name}-2`} from={`${name}.pin2`} to="net.GND" />,
+      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${net}`} thickness={traceWidth(net)} />,
+      <trace key={`${name}-2`} from={`${name}.pin2`} to="net.GND" thickness={traceWidth("GND")} />,
     ])}
     <UsbFtdi />
     </schematicsheet>

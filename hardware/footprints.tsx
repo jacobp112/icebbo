@@ -10,6 +10,11 @@ const pin1Dot = (x: number, y: number, radius = 0.1) =>
 const line = (key: string, points: [number, number][]) =>
   <silkscreenpath key={key} strokeWidth={SILK} route={points.map(([x, y]) => ({ x, y }))} />
 // Four L-shaped marks at the body corners (+-half), each leg `length` long.
+// Thermal vias inside an exposed pad, part of the pad's own pin so the pad
+// reaches the inner ground plane. 0.3 mm drill, 0.5 mm copper.
+const thermalVias = (pin: string, points: [number, number][]) =>
+  points.map(([x, y]) => <platedhole key={`via-${x}-${y}`} shape="circle" pcbX={x} pcbY={y}
+    holeDiameter="0.3mm" outerDiameter="0.5mm" portHints={[pin]} />)
 const cornerMarks = (half: number, length: number) =>
   [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([sx, sy]) => line(`corner-${sx}-${sy}`, [
     [sx * half, sy * (half - length)], [sx * half, sy * half], [sx * (half - length), sy * half],
@@ -22,6 +27,7 @@ export function Tps7a90DskFootprint() {
     {Array.from({length: 5}, (_, i) => <smtpad key={`left-${i}`} shape="rect" pcbX={-1.15} pcbY={1 - i * 0.5} width="0.6mm" height="0.25mm" portHints={[`pin${i + 1}`]} />)}
     {Array.from({length: 5}, (_, i) => <smtpad key={`right-${i}`} shape="rect" pcbX={1.15} pcbY={-1 + i * 0.5} width="0.6mm" height="0.25mm" portHints={[`pin${i + 6}`]} />)}
     <smtpad shape="rect" pcbX={0} pcbY={0} width="1.2mm" height="2mm" portHints={["pin11"]} />
+    {thermalVias("pin11", [[0, 0.5], [0, -0.5]])}
     {courtyard(3.4, 3.0)}
     {line("top", [[-0.6, 1.45], [0.6, 1.45]])}
     {line("bottom", [[-0.6, -1.45], [0.6, -1.45]])}
@@ -67,6 +73,7 @@ export function Ice40Sg48Footprint() {
   return <footprint>
     {leads}
     <smtpad shape="rect" pcbX={0} pcbY={0} width="5.4mm" height="5.4mm" portHints={["pin49"]} />
+    {thermalVias("pin49", [-1.5, 0, 1.5].flatMap((x) => [-1.5, 0, 1.5].map((y) => [x, y] as [number, number])))}
     {courtyard(8.1, 8.1)}
     {cornerMarks(3.6, 0.4)}
     {pin1Dot(-4.0, 3.3)}

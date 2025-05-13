@@ -6,7 +6,7 @@
 
 The 48 MHz clock and 16 clocks per UART bit imply 3 Mbaud **by calculation**. No UART waveform has been measured on physical hardware. FTDI's [FT2232H data sheet](https://ftdichip.com/wp-content/uploads/2024/03/DS_FT2232H.pdf) lists UART rates up to 12 Mbaud; the selected rate still needs host and board validation.
 
-`fpga/timing_probe.pcf` provisionally maps clock to SG48 pin 35 (`IOT_46b_G0`), reset to pin 38 (`IOT_50b`), UART input to pin 34 (`IOT_44b`), and activity output to pin 32 (`IOT_43a`). These names and numbers were checked against Lattice's [iCE40UP5K pinout workbook, revision 1.1](https://www.latticesemi.com/view_document?document_id=51971). Configuration reset (`CRESET_B`, pin 8) is a distinct board function and is not represented by this probe's `reset_n` input.
+`fpga/timing_probe.pcf` provisionally maps clock to SG48 pin 35 (`IOT_46b_G0`), reset to pin 38 (`IOT_50b`), UART input to pin 34 (`IOT_44b`) at the time of the recorded run, and activity output to pin 32 (`IOT_43a`). The PCF has since moved the UART input to pin 12 (`IOB_22a`) to match the routed board, so the recorded logs predate that change. These names and numbers were checked against Lattice's [iCE40UP5K pinout workbook, revision 1.1](https://www.latticesemi.com/view_document?document_id=51971). Configuration reset (`CRESET_B`, pin 8) is a distinct board function and is not represented by this probe's `reset_n` input.
 
 ## Reproduce and tool versions
 

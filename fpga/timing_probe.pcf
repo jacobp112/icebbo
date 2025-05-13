@@ -1,5 +1,5 @@
 # Provisional four-pin map, verified against Lattice iCE40UP5K SG48 pinout v1.1.
 set_io clk_48mhz 35
 set_io reset_n 38
-set_io uart_rx_pin 34
+set_io uart_rx_pin 12
 set_io activity_pin 32

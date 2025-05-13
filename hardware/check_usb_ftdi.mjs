@@ -60,7 +60,7 @@ const expected = {
   "R40.1":"V3V3", "R40.2":"PROG_REQ_N",
   "R41.1":"HOST_RESET_REQ", "R41.2":"GND",
   "R42.1":"PROG_OE", "R42.2":"GND",
-  "U5.31":"HOST_UART_RX", "U5.34":"HOST_UART_TX",
+  "U5.11":"HOST_UART_RX", "U5.12":"HOST_UART_TX",
 }
 for (const [ref, net] of Object.entries(expected)) expect(ref, net)
 

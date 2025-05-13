@@ -2,6 +2,7 @@ import React from "react"
 import { Ft2232HlFootprint, TiDrtFootprint, Usb4105Footprint } from "./footprints"
 import { at } from "./placement"
 import { capacitorProps, resistorProps } from "./parts"
+import { traceWidth } from "./routing"
 
 // Self-powered FT2232H host interface. Package land patterns are provisional.
 const ftdiPins = {
@@ -119,14 +120,14 @@ export function UsbFtdi() {
     <chip name="FB2" {...at("FB2")} manufacturerPartNumber="BLM18AG601SN1D" supplierPartNumbers={{jlcpcb: ["C19330"]}} footprint="0603" pinLabels={{pin1:"IN",pin2:"OUT"}} />
     {resistors.map(([name,value])=><resistor key={name} name={name} {...at(name)} resistance={value} {...resistorProps(value)} />)}
     {capacitors.map(([name,value])=><capacitor key={name} name={name} {...at(name)} capacitance={value} {...capacitorProps(value)} />)}
-    {links.map(([port,net],i)=><trace key={`usb-${i}`} from={port} to={`net.${net}`} />)}
+    {links.map(([port,net],i)=><trace key={`usb-${i}`} from={port} to={`net.${net}`} thickness={traceWidth(net)} />)}
     {resistors.flatMap(([name,,a,b])=>[
-      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${a}`} />,
-      <trace key={`${name}-2`} from={`${name}.pin2`} to={`net.${b}`} />,
+      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${a}`} thickness={traceWidth(a)} />,
+      <trace key={`${name}-2`} from={`${name}.pin2`} to={`net.${b}`} thickness={traceWidth(b)} />,
     ])}
     {capacitors.flatMap(([name,,rail])=>[
-      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${rail}`} />,
-      <trace key={`${name}-2`} from={`${name}.pin2`} to="net.GND" />,
+      <trace key={`${name}-1`} from={`${name}.pin1`} to={`net.${rail}`} thickness={traceWidth(rail)} />,
+      <trace key={`${name}-2`} from={`${name}.pin2`} to="net.GND" thickness={traceWidth("GND")} />,
     ])}
   </>
 }

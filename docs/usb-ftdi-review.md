@@ -4,7 +4,7 @@ The [captured circuit](../hardware/usb_ftdi.tsx) adds the USB-C data interface, 
 
 ## Power architecture
 
-The board takes **external regulated 5 V** at J1. A resettable fuse F1 and series Schottky D1 feed `P5V`, which supplies the three existing regulators. The USB-C connector's VBUS contacts are joined only on `USB_VBUS`, which feeds R32/R33 and FTDI `PWRSAV#`; they do not supply `P5V`. The 5.1 kΩ CC1 and CC2 pulldowns identify the board as a USB-C sink for the data connection. The data pins are tied for plug reversal; the SBU pins are intentionally open. U12 adds a two-line, low-capacitance USB ESD device.
+The board takes **external regulated 5 V** at J1. A resettable fuse F1 and series Schottky D1 feed `P5V`, which supplies the three existing regulators. The USB-C connector's VBUS contacts are joined only on `USB_VBUS`, which feeds R32/R33 and FTDI `PWRSAV#`; they do not supply `P5V`. The 5.1 kΩ CC1 and CC2 pulldowns identify the board as a USB-C sink for the data connection. The data pins are tied for plug reversal; the SBU pins are intentionally open. U12 adds a two-line, low-capacitance USB ESD device, placed inline between J2 and the FT2232H so the data pair passes it without a detour.
 
 The [FT2232H data sheet](https://www.ftdichip.cn/Support/Documents/DataSheets/ICs/DS_FT2232H.pdf) gives typical 70 mA VCORE and 30 mA PHY operating currents, already 100 mA before I/O and board loads. That makes a USB 2.0 pre-enumeration bus-power assumption unsound without a much deeper power analysis. The captured architecture therefore follows its self-powered Figure 6.3. `USB_PRESENT` is approximately `VBUS × 10/(4.7+10)` at the FTDI power-save input. Actual upstream-port disconnect and suspend behavior remain bench checks. The worst-case 3.3 V load, including the FTDI core and PHY maxima, is 257 mA, above the earlier 200 mA allowance. The regulator's heat and headroom at that load are checked in [thermal-budget.md](thermal-budget.md).
 
@@ -38,7 +38,7 @@ Channel A initially operates as a UART until the host selects MPSSE. ADBUS0/2 ca
 
 ACBUS6 drives Q1's gate and can pull the TPS3890 manual-reset input low. A 10 kΩ gate pulldown holds Q1 off at FTDI startup. ACBUS7 has a 10 kΩ pull-up to keep programming disabled by default; the buffer enable also has a 10 kΩ pulldown as recommended for the 126's safe power-up state. The NOR input monitors the real FPGA reset net, not merely the host command. Both FTDI control pins must be explicitly configured by the host before programming. The host must disable the buffers before releasing reset. An actively driven FTDI state can persist after a host process crash; software recovery and a physical service path are still required.
 
-Channel B TXD on FTDI pin 38 connects to FPGA pin 34; channel B RXD on pin 39 connects to FPGA pin 31. The host protocol for reading the running bid/ask state and the final PCF/RTL integration remain later work. This does not add order identities or withdrawal recovery to the constrained running-extrema engine.
+Channel B TXD on FTDI pin 38 connects to FPGA pin 12 (`IOB_22a`); channel B RXD on pin 39 connects to FPGA pin 11 (`IOB_20a`). These bank-2 pins face the FT2232H. The earlier choice, pins 34 and 31 on the far side of the FPGA, left the receive line unroutable. The host protocol for reading the running bid/ask state and the final PCF/RTL integration remain later work. This does not add order identities or withdrawal recovery to the constrained running-extrema engine.
 
 ## Reproducible checks and release gates
 

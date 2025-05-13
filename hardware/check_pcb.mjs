@@ -68,19 +68,22 @@ const pad = (name, pin) => {
   assert.equal(found.length, 1, `${name} ${pin}`)
   return found[0]
 }
+// Exposed pads share their pin with thermal vias; take the largest copper.
+const exposedPad = (name, pin) => padsOf(name).filter((p) => p.pin === pin)
+  .sort((a, b) => (b.x1 - b.x0) * (b.y1 - b.y0) - (a.x1 - a.x0) * (a.y1 - a.y0))[0]
 const size = (p) => [+(p.x1 - p.x0).toFixed(3), +(p.y1 - p.y0).toFixed(3)]
 const centre = (p) => [(p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2]
 const near = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < 1e-6, `${message}: ${actual} != ${expected}`)
 
 for (const name of ["U1", "U2", "U3"]) {
-  assert.equal(padsOf(name).length, 11, `${name} DSK0010A pads`)
-  assert.deepEqual(size(pad(name, "pin11")), [1.2, 2], `${name} thermal pad`)
+  assert.equal(padsOf(name).length, 13, `${name} DSK0010A pads and 2 thermal vias`)
+  assert.deepEqual(size(exposedPad(name, "pin11")), [1.2, 2], `${name} thermal pad`)
 }
 assert.equal(padsOf("U4").length, 6, "U4 DSE0006A pads")
 assert.deepEqual(size(pad("U4", "pin1")), [0.8, 0.25], "U4 pin 1")
 for (const pin of [2, 3, 4, 5, 6]) assert.deepEqual(size(pad("U4", `pin${pin}`)), [0.7, 0.25], `U4 pin ${pin}`)
-assert.equal(padsOf("U5").length, 49, "U5 SG48 pads")
-assert.deepEqual(size(pad("U5", "pin49")), [5.4, 5.4], "U5 exposed paddle")
+assert.equal(padsOf("U5").length, 58, "U5 SG48 pads and 9 thermal vias")
+assert.deepEqual(size(exposedPad("U5", "pin49")), [5.4, 5.4], "U5 exposed paddle")
 assert.equal(padsOf("U8").length, 64, "U8 LQFP-64 pads")
 near(centre(pad("U8", "pin17"))[1] - centre(pad("U8", "pin64"))[1], -11.15, "U8 row spacing")
 assert.equal(padsOf("J2").length, 16, "J2 contacts and shell stakes")

@@ -57,6 +57,17 @@ The USB4105 body outline, courtyard and side marks follow the KiCad library foot
 
 Silkscreen on these footprints is at least 0.1 mm from copper. The generator's SOIC and TSSOP outlines (U6, U9, U11) sit at a fixed 0.05 mm inside their pad rows. Its only alternative drops all silkscreen, including the pin-1 mark, so they are kept; the fabricator may trim them.
 
+## Thermal vias
+
+The exposed pads carry thermal vias that are part of the footprint and belong to the pad's own pin. Each via has a 0.3 mm drill and 0.5 mm copper.
+
+| Footprint | Vias | Position |
+| --- | --- | --- |
+| iCE40 SG48 (pin 49) | 9 | 3 × 3 grid at 1.5 mm pitch |
+| TPS7A90 DSK0010A (pin 11) | 2 | ±0.5 mm on the pad's long axis |
+
+They tie each pad into the inner-1 ground plane for heat and a low-impedance return. They also give an autorouter a legal way to reach the plane from a pad it cannot place a via beside. Open vias in pads can wick solder during reflow. JLCPCB's via-in-pad filling (POFV) avoids that at extra cost, and it should be decided before ordering.
+
 ## Checks run
 
 `hardware/check_schematic.ps1` builds the board with PCB output and autorouting disabled. It runs both targeted netlist checks and `tsci check netlist`, which reports zero errors and zero warnings. It also runs [check_pcb.mjs](../hardware/check_pcb.mjs) on the generated circuit JSON, which asserts that:
@@ -65,6 +76,7 @@ Silkscreen on these footprints is at least 0.1 mm from copper. The generator's S
 - all copper stays at least the board's 0.2 mm edge clearance inside the 100 × 70 mm outline
 - pads of different components are at least 0.2 mm apart, compared pad against pad
 - every part has a courtyard
+- the exposed pads keep their thermal vias: 9 on the FPGA paddle and 2 on each regulator pad
 - silkscreen is at least 0.1 mm from copper on the custom footprints and 0.05 mm on generator footprints
 - each reviewed footprint keeps its pad count and the corrected dimensions above: the DSK and SG48 exposed pads, TPS3890 pad lengths, FT2232HL row spacing, USB4105 stake sizes and edge offset, the SOIC/TSSOP/SOT-23-5 row spacing and pad sizes, the DRT pads, and the oscillator and crystal pitches
 
