@@ -20,6 +20,13 @@ try {
     & node hardware/check_power_budget.mjs
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+    # The committed Freerouting session, merged onto this build (docs/routing.md).
+    & node hardware/import_ses.mjs hardware/routing/board.ses dist/hardware/power_config/circuit.json dist/hardware/power_config/routed.json
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    & node hardware/check_routing.mjs dist/hardware/power_config/routed.json
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
     $netlist = & (Join-Path $repo 'node_modules\.bin\tsci.cmd') check netlist hardware/power_config.tsx
     if ($LASTEXITCODE -ne 0) { $netlist | Write-Output; exit $LASTEXITCODE }
     $netlist | Select-Object -First 2 | Write-Output

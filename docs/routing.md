@@ -2,6 +2,18 @@
 
 The board is routed with [Freerouting](https://github.com/freerouting/freerouting), not tscircuit's built-in autorouter. The tscircuit source remains the single source of truth for the netlist, footprints and placement. Freerouting produces only copper: the traces and vias. Its session file is merged back onto tscircuit's own build and checked there.
 
+## Current routing
+
+`hardware/routing/board.ses` is the committed Freerouting session. Its routing stage ran with the optimiser off and left **0 unrouted connections**:
+
+- **Copper:** 655 traces, about 1.80 m in total (1.30 m top, 0.50 m bottom), and 142 vias of 0.45/0.2 mm.
+- **Planes:** no traces on the inner layers, so both planes are unbroken apart from antipads.
+- **Sign-off:** all 55 nets connected, no shorts, and no clearance findings from tscircuit's checks.
+
+`hardware/check_schematic.ps1` merges this session onto every build and runs the routing sign-off. It needs no Java or Freerouting. A deliberately stale case, R1 moved 1 mm without re-routing, fails with a V1V2 + FB_CORE short.
+
+The last routing blocker was the host UART. On FPGA pins 34/31, which face away from the FT2232H, the receive line stayed unrouted in every Freerouting configuration tried, so the UART moved to bank-2 pins 12/11.
+
 ## Why not the built-in router
 
 tscircuit's autorouter connected all 255 connections, but the result always had 17 design-rule errors on this board: 5 traces crossing other nets' vias, 6 clearance violations and 6 board-edge violations. The result was identical across runs. The trace-clearance setting, plane fan-out maps, reroute phases and the older `sequential-trace` preset did not change it, and the `auto-cloud` Freerouting service is deprecated in the pinned tscircuit version. tscircuit also caches routing results in `.tscircuit/cache` under keys that do not include those settings, so the cache has to be cleared between experiments.
@@ -57,5 +69,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/route.ps1 -Java <pa
 ## Limits
 
 - The USB D+/D− pair is routed as two independent signals. Its 90 Ω differential geometry (0.2332 mm traces with a 0.15 mm gap on JLCPCB's JLC04161H-7628 stack-up) is not yet enforced.
-- Freerouting reports "violations" under its own rules. The routing sign-off is `check_routing.mjs`.
+- Freerouting reports 15 violations under its own rules. There are exactly 15 in-pad thermal vias (9 on the FPGA paddle and 2 on each regulator), and the count went from 0 to 15 when they were added. It flags each via that overlaps its own pad. The routing sign-off is `check_routing.mjs`.
 - The routed copper depends on the placement. Any change to placement, footprints or the netlist needs a fresh route, and `check_routing.mjs` fails on a session that no longer fits.
