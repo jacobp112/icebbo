@@ -1,12 +1,14 @@
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { runAllRoutingChecks } from "@tscircuit/checks"
+import { usbPairLayout } from "./usb_pair.mjs"
 
 // Routing sign-off for the board produced by import_ses.mjs.
 // 1. Connectivity from copper geometry, including the inner planes: every net
 //    joins all of its pins (no opens) and no copper joins two nets (no shorts).
 // 2. tscircuit's clearance checks. Its own connectivity checks only follow
 //    traces, so pins joined through a plane are left to check 1.
+// 3. The USB pair is exactly the fixed 90 ohm layout from usb_pair.mjs.
 const file = process.argv[2] ?? "dist/hardware/power_config/routed.json"
 const circuit = JSON.parse(readFileSync(file, "utf8"))
 const of = (type) => circuit.filter((e) => e.type === type)
@@ -165,6 +167,42 @@ for (const joined of netsByComponent.values()) {
   if (joined.size > 1) findings.push(`short: ${[...joined].map((n) => nets.get(n)).join(" + ")}`)
 }
 
+// The USB pair must be exactly the fixed 90 ohm layout, compared as geometry
+// (the router may merge collinear points or join wires): every USB trace lies
+// on the designed wires at the designed width (so no router-added stubs), and
+// every designed wire is covered.
+const layout = usbPairLayout(circuit)
+const netIdByName = new Map(of("source_net").map((n) => [n.name, n.source_net_id]))
+const usbNets = new Set(["USB_DP", "USB_DM"].map((n) => netIdByName.get(n)))
+const segmentsOf = (points, width, net) => points.slice(1).map((b, i) => ({ a: points[i], b, width, net }))
+const designedSegments = layout.wires.filter((w) => usbNets.has(netIdByName.get(w.net)))
+  .flatMap((w) => segmentsOf(w.points, w.width, netIdByName.get(w.net)))
+const usbTraces = of("pcb_trace").filter((t) => usbNets.has(t.connection_name))
+const routedSegments = usbTraces.flatMap((t) => t.route.slice(1).map((b, i) => ({ a: t.route[i], b, width: b.width, net: t.connection_name, layer: b.layer })))
+const samples = (s) => {
+  const n = Math.max(1, Math.ceil(Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y) / 0.05))
+  return Array.from({ length: n + 1 }, (_, k) => ({ x: s.a.x + (s.b.x - s.a.x) * k / n, y: s.a.y + (s.b.y - s.a.y) * k / n }))
+}
+const onAny = (p, segs, net) => segs.some((s) => s.net === net && pointSegment(p, s.a, s.b) < 0.003)
+for (const s of routedSegments) {
+  const width = designedSegments.some((d) => d.net === s.net && Math.abs(d.width - s.width) < 0.002)
+  if (s.layer !== "top" || !width || !samples(s).every((p) => onAny(p, designedSegments, s.net))) {
+    findings.push(`USB pair: ${nets.get(s.net)} copper off the designed pair near (${s.a.x.toFixed(2)}, ${s.a.y.toFixed(2)})`)
+  }
+}
+for (const d of designedSegments) {
+  if (!samples(d).every((p) => onAny(p, routedSegments, d.net))) {
+    findings.push(`USB pair: designed ${nets.get(d.net)} segment near (${d.a.x.toFixed(2)}, ${d.a.y.toFixed(2)}) missing`)
+  }
+}
+if (of("pcb_via").some((v) => usbTraces.some((t) => t.pcb_trace_id === v.pcb_trace_id))) findings.push("USB pair: vias on the pair")
+const length = (points) => points.slice(1).reduce((s, b, i) => s + Math.hypot(b.x - points[i].x, b.y - points[i].y), 0)
+// J2 -> U8 length of each side (the lead into U12 plus the run from U12).
+const sideLength = (net) => layout.wires.filter((w) => w.net === net && w.main).reduce((s, w) => s + length(w.points), 0)
+const [dmLength, dpLength] = [sideLength("USB_DM"), sideLength("USB_DP")]
+const skew = Math.abs(dmLength - dpLength)
+if (skew > 1.25) findings.push(`USB pair: ${skew.toFixed(2)} mm skew`)
+
 // Clearance findings from tscircuit, minus its trace-only connectivity checks.
 const traceOnly = /not connected to net|missing a connection to|disconnected endpoint/
 for (const error of await runAllRoutingChecks(circuit)) {
@@ -173,4 +211,4 @@ for (const error of await runAllRoutingChecks(circuit)) {
 
 for (const finding of findings) console.error(`- ${finding}`)
 assert.equal(findings.length, 0, `${findings.length} routing findings`)
-console.log(`Routing checked: ${of("pcb_trace").length} traces, ${of("pcb_via").length} vias; ${componentsByNet.size} nets connected, no shorts, clearances clean`)
+console.log(`Routing checked: ${of("pcb_trace").length} traces, ${of("pcb_via").length} vias; ${componentsByNet.size} nets connected, no shorts, clearances clean; USB pair as designed (${dmLength.toFixed(1)} mm, ${skew.toFixed(2)} mm skew)`)

@@ -6,13 +6,26 @@ The board is routed with [Freerouting](https://github.com/freerouting/freeroutin
 
 `hardware/routing/board.ses` is the committed Freerouting session. Its routing stage ran with the optimiser off and left **0 unrouted connections**:
 
-- **Copper:** 655 traces, about 1.80 m in total (1.30 m top, 0.50 m bottom), and 142 vias of 0.45/0.2 mm.
+- **Copper:** 650 traces, about 1.81 m in total (1.35 m top, 0.47 m bottom), and 128 vias of 0.45/0.2 mm.
 - **Planes:** no traces on the inner layers, so both planes are unbroken apart from antipads.
-- **Sign-off:** all 55 nets connected, no shorts, and no clearance findings from tscircuit's checks.
+- **Sign-off:** all 55 nets connected, no shorts, no clearance findings from tscircuit's checks, and the USB pair exactly as designed.
 
 `hardware/check_schematic.ps1` merges this session onto every build and runs the routing sign-off. It needs no Java or Freerouting. A deliberately stale case, R1 moved 1 mm without re-routing, fails with a V1V2 + FB_CORE short.
 
-The last routing blocker was the host UART. On FPGA pins 34/31, which face away from the FT2232H, the receive line stayed unrouted in every Freerouting configuration tried, so the UART moved to bank-2 pins 12/11.
+The last routing blocker was the host UART. On FPGA pins 34/31, which face away from the FT2232H, the receive line stayed unrouted in every Freerouting configuration tried, so the UART moved to bank-2 pins 12/11. The fixed USB pair later left FLASH_MISO unrouted at U6, and moving U6 1 mm east cleared it.
+
+## USB pair
+
+The USB D+/D− pair is laid out by [usb_pair.mjs](../hardware/usb_pair.mjs) and not by Freerouting. It is JLCPCB's 90 Ω differential geometry for the JLC04161H-7628 stack-up: 0.2332 mm traces with a 0.15 mm gap, on the top layer over the inner-1 ground plane. `prepare_dsn.mjs` hands the pair to Freerouting as protected wiring, and Freerouting routes everything else around it. The route is computed from the built pad positions. It asserts the placement it relies on, and stops rather than drawing a wrong route.
+
+- **J2:** USB-C interleaves the contacts DM2, DP1, DM1, DP2. The pair leaves from DM2 and DP1. DP2 ties to D+ above the contacts, and DM1 ties to D− below them, under the connector body. Everything stays on the top layer with no vias.
+- **U12:** the ESD clamp sits in the pair's path. The traces pass 0.46 mm either side of its centre and step through each clamp pad. U12's ground pin between them gets a fixed via just above it, and the pair closes to 0.15 mm only after clearing that via. TI names the pins D+ and D−, but the clamps are identical, so D− uses the left pin to keep the pair uncrossed.
+- **U12 to U8:** the pair runs coupled at a 45° diagonal, then north in a column 1.6 mm west of the FT2232H's pins, leaving room for its neighbouring pins to via under the pair. It then turns east into pins 7 (DM) and 8 (DP).
+- **Length:** J2 to U8 is 22.9 mm, with 0.77 mm D+/D− skew from the bends. The usual limit for USB 2.0 high speed is about 1.25 mm.
+
+Freerouting counts a connection only where a wire ends on a pad, not where a wire passes over one. Each part of the pair therefore ends on a pad centre or on another wire's end. Otherwise Freerouting adds its own 0.15 mm stubs to the USB nets.
+
+`check_routing.mjs` compares the routed USB copper with the design as geometry. Every USB trace must lie on the designed wires at 0.2332 mm on the top layer, every designed segment must be present, and no via may sit on the pair. The check caught each of these deliberately broken copies of the routed board: a stray 0.15 mm stub on D+, the pair drawn at 0.15 mm, and a missing pair segment.
 
 ## Why not the built-in router
 
@@ -41,7 +54,7 @@ Each adjustment in `prepare_dsn.mjs` fixes a failure seen while routing:
 | Via 0.45 mm pad / 0.2 mm drill instead of 0.6/0.3 | The larger via does not fit beside 0.5 mm-pitch pins. |
 | Clearance 0.1 mm in every rule (the export uses 0.15–0.2 mm) | Wide power traces could not enter fine-pitch pins, leaving up to 36 connections unrouted. |
 | Keep-outs around the USB-C locating holes | The export omits non-plated holes, and traces were routed across them. |
-| Empty the DSN `wiring` section | `tsci export` runs tscircuit's own autorouter and cannot skip it. Any traces it produced would be handed to Freerouting as fixed copper. On this board that router currently fails, so the section is already empty. |
+| Replace the DSN `wiring` section with the protected USB pair | `tsci export` runs tscircuit's own autorouter and cannot skip it. Any traces it produced would be handed to Freerouting as fixed copper, so they are dropped. On this board that router currently fails. The section then carries only the fixed USB pair (see [USB pair](#usb-pair)). |
 
 The trace widths come from [routing.ts](../hardware/routing.ts). Freerouting does not narrow a trace near a pad, so no net that reaches a 0.5 mm-pitch pin is wider than 0.25 mm. Freerouting's optimiser stage is disabled because it re-routed finished connections and left more of them unrouted.
 
@@ -68,6 +81,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/route.ps1 -Java <pa
 
 ## Limits
 
-- The USB D+/D− pair is routed as two independent signals. Its 90 Ω differential geometry (0.2332 mm traces with a 0.15 mm gap on JLCPCB's JLC04161H-7628 stack-up) is not yet enforced.
+- The 90 Ω pair geometry comes from JLCPCB's calculator via the JITX library, and IPC-2141 cross-checks it at about 95 Ω. The fabricated impedance depends on JLCPCB's process and is not measured.
 - Freerouting reports 15 violations under its own rules. There are exactly 15 in-pad thermal vias (9 on the FPGA paddle and 2 on each regulator), and the count went from 0 to 15 when they were added. It flags each via that overlaps its own pad. The routing sign-off is `check_routing.mjs`.
 - The routed copper depends on the placement. Any change to placement, footprints or the netlist needs a fresh route, and `check_routing.mjs` fails on a session that no longer fits.

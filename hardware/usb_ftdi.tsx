@@ -38,7 +38,9 @@ const links: Link[] = [
   ["J2.GND1", "GND"], ["J2.GND2", "GND"],
   ["J2.SHELL1", "GND"], ["J2.SHELL2", "GND"],
   ["J2.SHELL3", "GND"], ["J2.SHELL4", "GND"],
-  ["U12.DP", "USB_DP"], ["U12.DM", "USB_DM"], ["U12.GND", "GND"],
+  // TI names U12 pins 1/2 D+/D-, but the two clamps are identical. D- takes
+  // the left pin so the pair passes straight through without crossing.
+  ["U12.IO1", "USB_DM"], ["U12.IO2", "USB_DP"], ["U12.GND", "GND"],
   // FT2232HL power and fixed-function pins follow its LQFP64 data sheet.
   ...["VCCIO_A","VCCIO_B","VCCIO_C","VCCIO_D","VREGIN"].map(p=>[`U8.${p}`,"V3V3"] as const),
   ...["VCORE_A","VCORE_B","VCORE_C","VREGOUT"].map(p=>[`U8.${p}`,"FTDI_V18"] as const),
@@ -109,7 +111,7 @@ export function UsbFtdi() {
     <chip name="F1" {...at("F1")} manufacturerPartNumber="MF-PSMF110X-2" supplierPartNumbers={{jlcpcb: ["C89658"]}} footprint="0805" pinLabels={{pin1:"IN",pin2:"OUT"}} />
     <chip name="D1" {...at("D1")} manufacturerPartNumber="SS14" supplierPartNumbers={{jlcpcb: ["C2480"]}} footprint="sma_p3.9mm_pl1.52mm_pw1.68mm" pinLabels={{pin1:"K",pin2:"A"}} />
     <connector name="J2" {...at("J2")} standard="usb_c" manufacturerPartNumber="USB4105-GF-A-120" supplierPartNumbers={{jlcpcb: ["C5184243"]}} footprint={<Usb4105Footprint />} pinLabels={{pin1:"SHELL3",pin2:"SHELL4",pin13:"SHELL1",pin14:"SHELL2",pin15:"GND1",pin16:"VBUS1",pin17:"SBU2",pin18:"CC1",pin19:"DM2",pin20:"DP1",pin21:"DM1",pin22:"DP2",pin23:"SBU1",pin24:"CC2",pin25:"VBUS2",pin26:"GND2"}} />
-    <chip name="U12" {...at("U12")} manufacturerPartNumber="TPD2EUSB30ADRTR" supplierPartNumbers={{jlcpcb: ["C94934"]}} footprint={<TiDrtFootprint />} pinLabels={{pin1:"DP",pin2:"DM",pin3:"GND"}} pinAttributes={{GND:{requiresGround:true}}} />
+    <chip name="U12" {...at("U12")} manufacturerPartNumber="TPD2EUSB30ADRTR" supplierPartNumbers={{jlcpcb: ["C94934"]}} footprint={<TiDrtFootprint />} pinLabels={{pin1:"IO1",pin2:"IO2",pin3:"GND"}} pinAttributes={{GND:{requiresGround:true}}} />
     <chip name="U8" {...at("U8")} manufacturerPartNumber="FT2232HL-REEL" supplierPartNumbers={{jlcpcb: ["C27882"]}} footprint={<Ft2232HlFootprint />} pinLabels={ftdiPins} pinAttributes={{VREGIN:{requiresPower:true},VCCIO_A:{requiresPower:true},VCCIO_B:{requiresPower:true},VCCIO_C:{requiresPower:true},VCCIO_D:{requiresPower:true},GND1:{requiresGround:true},AGND:{requiresGround:true}}} />
     <chip name="U9" {...at("U9")} manufacturerPartNumber="SN74LVC126APWR" supplierPartNumbers={{jlcpcb: ["C7815"]}} footprint="tssop14_w4.3mm_p0.65mm_pl1.5mm_pw0.45mm" pinLabels={{pin1:"OE1",pin2:"A1",pin3:"Y1",pin4:"OE2",pin5:"A2",pin6:"Y2",pin7:"GND",pin8:"Y3",pin9:"A3",pin10:"OE3",pin11:"Y4",pin12:"A4",pin13:"OE4",pin14:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
     <chip name="U10" {...at("U10")} manufacturerPartNumber="SN74LVC1G02DBVR" supplierPartNumbers={{jlcpcb: ["C16360"]}} footprint="sot23_5_w2.6mm_pl1.1mm_pw0.6mm" pinLabels={{pin1:"A",pin2:"B",pin3:"GND",pin4:"Y",pin5:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />

@@ -1,10 +1,12 @@
 import { readFileSync, writeFileSync } from "node:fs"
+import { usbPairLayout } from "./usb_pair.mjs"
 
 // Adapt tscircuit's Specctra DSN export for Freerouting:
 // - GND and V3V3 planes fill the inner layers (the export omits pours). The
 //   layers stay signal-typed so Freerouting joins pins to the planes by via,
 //   and every net class routes on the outer layers only so no trace splits
 //   a plane.
+// - the USB pair arrives pre-routed as protected wiring (usb_pair.mjs)
 // - clearances match the board's 0.1 mm design rule
 // - non-plated holes (the USB-C locating pegs) become copper keep-outs
 // - vias shrink to 0.45 mm pad / 0.2 mm drill to fit beside 0.5 mm-pitch pins,
@@ -25,8 +27,25 @@ const replaceOnce = (from, to) => {
 const wiringStart = dsn.lastIndexOf("(wiring")
 if (wiringStart < 0) throw new Error("wiring section not found")
 const wireCount = (dsn.slice(wiringStart).match(/\(wire\b/g) ?? []).length
-dsn = dsn.slice(0, wiringStart) + "(wiring\n  )\n)\n"
 if (wireCount) console.log(`Dropped ${wireCount} pre-routed wires from the export`)
+
+// The USB pair is laid out by usb_pair.mjs and handed over as protected
+// wiring, so Freerouting keeps its 90 ohm geometry and routes around it.
+const circuit = JSON.parse(readFileSync(circuitFile, "utf8"))
+const netId = (name) => dsn.match(new RegExp(`\\(net "?(${name}_source_net_\\d+)"?`))?.[1]
+const um = (mm) => Math.round(mm * 1000)
+const pair = usbPairLayout(circuit)
+const fixedNet = (name) => {
+  if (!netId(name)) throw new Error(`net ${name} not found`)
+  return `(net "${netId(name)}") (type protect)`
+}
+const fixed = [
+  ...pair.wires.map(({ net, width, points }) =>
+    `    (wire (path F.Cu ${um(width)} ${points.map((p) => `${um(p.x)} ${um(p.y)}`).join(" ")}) ${fixedNet(net)})\n`),
+  ...pair.vias.map((v) =>
+    `    (via "Via[0-3]_${um(v.outer)}:${um(v.hole)}_um" ${um(v.x)} ${um(v.y)} ${fixedNet(v.net)})\n`),
+]
+dsn = dsn.slice(0, wiringStart) + `(wiring\n${fixed.join("")}  )\n)\n`
 
 // Planes stop 0.2 mm inside the 100 x 70 mm outline (DSN units are µm).
 const [x, y] = [49800, 34800]
@@ -42,7 +61,7 @@ replaceOnce(viaLine,
   `    (plane ${netName("V3V3")} (polygon In2.Cu 0  ${outline}))\n` + viaLine)
 
 // Keep copper 0.2 mm off each non-plated hole (DSN coordinates are µm).
-const holes = JSON.parse(readFileSync(circuitFile, "utf8")).filter((e) => e.type === "pcb_hole")
+const holes = circuit.filter((e) => e.type === "pcb_hole")
 const keepouts = holes.map((h, i) => {
   const diameter = Math.round((h.hole_diameter + 2 * 0.2) * 1000)
   return `    (keepout "npth_${i}" (circle signal ${diameter} ${Math.round(h.x * 1000)} ${Math.round(h.y * 1000)}))\n`

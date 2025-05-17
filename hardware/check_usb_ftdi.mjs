@@ -32,7 +32,7 @@ const expected = {
   "J2.19":"USB_DM", "J2.20":"USB_DP", "J2.21":"USB_DM",
   "J2.22":"USB_DP", "J2.24":"USB_CC2", "J2.25":"USB_VBUS",
   "J2.26":"GND",
-  "U12.1":"USB_DP", "U12.2":"USB_DM", "U12.3":"GND",
+  "U12.1":"USB_DM", "U12.2":"USB_DP", "U12.3":"GND",
   "U8.2":"FTDI_OSCI", "U8.3":"FTDI_OSCO", "U8.4":"FTDI_VPHY",
   "U8.6":"FTDI_REF", "U8.7":"USB_DM", "U8.8":"USB_DP",
   "U8.9":"FTDI_VPLL", "U8.13":"GND", "U8.14":"FTDI_RESET_N",
