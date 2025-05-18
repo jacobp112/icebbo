@@ -27,6 +27,10 @@ try {
     & node hardware/check_routing.mjs dist/hardware/power_config/routed.json
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+    # Gerbers, drill files, BOM and placement from the checked copper (docs/fabrication.md).
+    & node hardware/fabricate.mjs dist/hardware/power_config/routed.json dist/hardware/fabrication
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
     $netlist = & (Join-Path $repo 'node_modules\.bin\tsci.cmd') check netlist hardware/power_config.tsx
     if ($LASTEXITCODE -ne 0) { $netlist | Write-Output; exit $LASTEXITCODE }
     $netlist | Select-Object -First 2 | Write-Output

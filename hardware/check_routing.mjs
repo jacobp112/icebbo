@@ -145,9 +145,28 @@ for (const pour of of("pcb_copper_pour")) {
   }
 }
 
+// Antipads: a through-hole item not on a plane's net sits in a hole of that
+// plane with clearance to its copper (the gerbers flash every via and plated
+// pad on the inner layers). 0.15 mm allows for the pour's polygonal arcs
+// around the 0.2 mm margin.
+const antipadClearance = 0.15
+const antipadFindings = []
+of("pcb_copper_pour").forEach((pour, p) => {
+  const planeIndex = items.length - of("pcb_copper_pour").length + p
+  const edges = [pour.brep_shape.outer_ring, ...(pour.brep_shape.inner_rings ?? [])].flatMap(({ vertices: v }) =>
+    v.map((a, k) => ({ kind: "segment", a, b: v[(k + 1) % v.length], r: 0 })))
+  items.forEach((item, i) => {
+    if (!item.throughHole || find(i) === find(planeIndex)) return
+    const clearance = Math.min(...edges.map((edge) => gap(item, edge)))
+    if (clearance < antipadClearance) {
+      antipadFindings.push(`antipad: ${item.pin ?? `via at (${item.x.toFixed(2)}, ${item.y.toFixed(2)})`} is ${clearance.toFixed(3)} mm from the ${pour.layer} plane`)
+    }
+  })
+})
+
 // Opens and shorts.
 const nets = new Map(of("source_net").map((n) => [n.source_net_id, n.name]))
-const findings = []
+const findings = [...antipadFindings]
 const componentsByNet = new Map()
 const netsByComponent = new Map()
 items.forEach((item, i) => {
@@ -211,4 +230,4 @@ for (const error of await runAllRoutingChecks(circuit)) {
 
 for (const finding of findings) console.error(`- ${finding}`)
 assert.equal(findings.length, 0, `${findings.length} routing findings`)
-console.log(`Routing checked: ${of("pcb_trace").length} traces, ${of("pcb_via").length} vias; ${componentsByNet.size} nets connected, no shorts, clearances clean; USB pair as designed (${dmLength.toFixed(1)} mm, ${skew.toFixed(2)} mm skew)`)
+console.log(`Routing checked: ${of("pcb_trace").length} traces, ${of("pcb_via").length} vias; ${componentsByNet.size} nets connected, no shorts, clearances and plane antipads clean; USB pair as designed (${dmLength.toFixed(1)} mm, ${skew.toFixed(2)} mm skew)`)

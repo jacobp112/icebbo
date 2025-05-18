@@ -63,6 +63,7 @@ The trace widths come from [routing.ts](../hardware/routing.ts). Freerouting doe
 `check_routing.mjs` is the routing sign-off:
 
 - **Connectivity from copper geometry, planes included.** Pads, trace segments, vias and plated holes are joined wherever their copper touches on a shared layer. Plated holes are modelled by shape: round, square pad, or pill slot. A via or plated hole joins a plane when its centre lies in plane copper rather than in an antipad. Every net must form one connected group (no opens), and no group may contain two nets (no shorts).
+- **Plane antipads.** The gerbers flash every via and plated pad on both inner layers, so any through-hole copper that is not on a plane's net must sit in an antipad at least 0.15 mm from that plane's copper. The pour keeps 0.2 mm; the lower limit allows for its polygonal arcs, and the closest measured is 0.198 mm. The check caught a deliberately shrunken antipad around one 3.3 V-plane via.
 - **Clearances** from tscircuit's `runAllRoutingChecks`. Its connectivity messages are excluded, because they follow traces only and report pins that are joined through a plane as unconnected.
 
 ## Tools
