@@ -15,7 +15,7 @@ D1's schematic **pin 1 is the cathode**. Before this change, pin 1 was the anode
 
 ## Reset MOSFET
 
-Q1 lets FTDI ACBUS6 pull the TPS3890 `MR` input low through a 10 kΩ pull-up. The [TPS3890 data sheet](https://www.ti.com/lit/ds/symlink/tps3890.pdf) requires `MR` ≤ 0.25 × VDD, about 0.81 V at 3.3 V, so Q1 must sink about 0.25 mA.
+Q1 lets FTDI ACBUS6 pull the TPS3808 `MR` input low against a 10 kΩ pull-up and the chip's internal 90 kΩ one. The [TPS3808 data sheet](https://www.ti.com/lit/ds/symlink/tps3808.pdf) requires `MR` ≤ 0.3 × VDD, about 0.99 V at 3.3 V, so Q1 must sink about 0.37 mA.
 
 - **Rejected: 2N7002** (JSCJ, LCSC C8545). Its threshold is specified at up to 2.5 V at only 250 µA. The FTDI output-high guarantee is around 2.4 V, so worst-case turn-on is not assured.
 - **Selected: AOS AO3400A** (LCSC C20917). Its [data sheet](https://www.aosmd.com/res/datasheets/AO3400A.pdf) gives a threshold of 0.65 / 1.05 / 1.45 V (min / typ / max) at 250 µA, and R<sub>DS(on)</sub> ≤ 48 mΩ at V<sub>GS</sub> = 2.5 V. It is fully on from a 3.3 V gate, and the 10 kΩ gate pulldown holds it off. Its SOT-23 pinout (1 G, 2 S, 3 D) matches the schematic.
@@ -27,7 +27,7 @@ Q1 lets FTDI ACBUS6 pull the TPS3890 `MR` input low through a 10 kΩ pull-up. Th
 | 22 µF 25 V X5R ±10% | Murata GRM31CR61E226KE15L | 1206 | C77091 | C1–C6, regulator input and output |
 | 4.7 µF 25 V X5R ±10% | Samsung CL21A475KAQNNNE | 0805 | C1779 | FPGA and FTDI bulk, FTDI VCORE |
 | 100 nF 50 V X7R ±10% | Samsung CL10B104KB8NNNC | 0603 | C1591 | local decoupling |
-| 10 nF 50 V X7R ±10% | Samsung CL10B103KB8NNNC | 0603 | C1589 | C10, supervisor delay |
+| 10 nF 50 V X7R ±10% | Samsung CL10B103KB8NNNC | 0603 | C1589 | C10, supervisor delay; C44, supervisor sense filter |
 | 6.8 nF 50 V X7R ±10% | Fenghua 0603B682K500NT | 0603 | C1631 | C7–C9, regulator soft-start |
 | 27 pF 50 V C0G ±5% | Samsung CL10C270JB8NNNC | 0603 | C1656 | C42–C43, FTDI crystal load |
 
@@ -50,7 +50,7 @@ Even at a 5.25 V input and a few percent temperature loss, the inputs stay near 
 
 ## Resistors
 
-All 31 resistors are 0603 ±1 % 100 mW ±100 ppm/°C thick film, listed in [parts.ts](../hardware/parts.ts). UNI-ROYAL `0603WAF` parts are used for every value except 10 kΩ. That value's UNI-ROYAL part (C25804) was out of stock at LCSC, so it uses Yageo RC0603FR-0710KL (C98220).
+31 of the 33 resistors are 0603 ±1 % 100 mW ±100 ppm/°C thick film, listed in [parts.ts](../hardware/parts.ts). UNI-ROYAL `0603WAF` parts are used for every value except 10 kΩ. That value's UNI-ROYAL part (C25804) was out of stock at LCSC, so it uses Yageo RC0603FR-0710KL (C98220). The other two, the VPP reset divider R43/R44, are ±0.1 % ±25 ppm/°C thin film (see [VPP reset threshold](#vpp-reset-threshold)).
 
 **Feedback dividers.** The earlier design assumed 0.1 % resistors, and its 312 kΩ and 213 kΩ values are rare E192 values. TI specifies the TPS7A90 output accuracy as ±1.0 %, excluding external resistors. A divider with top resistor R<sub>T</sub> and bottom R<sub>B</sub>, both ±1 %, adds up to ±2 % × R<sub>T</sub>/(R<sub>T</sub>+R<sub>B</sub>).
 
@@ -58,21 +58,40 @@ All 31 resistors are 0603 ±1 % 100 mW ±100 ppm/°C thick film, listed in [part
 | --- | --- | --- | --- | --- |
 | 1.2 V | 49.9k / 100k | 1.199 V | 1.179–1.219 V | FPGA VCC 1.14–1.26 V |
 | 3.3 V | **316k** / 100k (was 312k) | 3.328 V | 3.244–3.412 V | FPGA I/O 3.14–3.46 V |
-| 2.5 V | **220k** / 100k (was 213k) | 2.56 V | 2.499–2.621 V | TPS389025 release ≤ 2.438 V; VPP ≤ 3.46 V |
+| 2.5 V | **220k** / 100k (was 213k) | 2.56 V | 2.499–2.621 V | U4 reset release ≤ 2.479 V; VPP ≤ 3.46 V |
 
-The 2.5 V rail sets the requirement. The TPS389025 supervisor holds the FPGA in reset until `VPP_2V5` exceeds its rising threshold, up to 2.438 V. With the old 213k and 1 % parts, the rail could sit only 7 mV above that. With 220k the static margin is 61 mV. A worst-case ±100 ppm/°C mismatch across 0–40 °C removes about 5 mV more. The 3.3 V change replaces a rare E192 value with a stocked E96 one while keeping 40–100 mV of margin to the I/O limits. Neither rail needs 0.1 % parts. The regulator power-good thresholds, as a percentage of nominal, and the sequencing analysis are unchanged.
+The 2.5 V rail sets the requirement. The reset supervisor holds the FPGA in reset until `VPP_2V5` exceeds its rising threshold, up to 2.479 V (see [VPP reset threshold](#vpp-reset-threshold)). With 220k the static margin is 20 mV. A worst-case ±100 ppm/°C mismatch across 0–40 °C removes about 5 mV more. The 3.3 V change replaces a rare E192 value with a stocked E96 one while keeping 40–100 mV of margin to the I/O limits. Neither regulator divider needs 0.1 % parts. The regulator power-good thresholds, as a percentage of nominal, and the sequencing analysis are unchanged.
+
+## VPP reset threshold
+
+U4, a TPS3808G01, releases `CRESET_B` when its sense input rises through 0.405 V plus hysteresis. R43 (48.1 kΩ) and R44 (10 kΩ) divide `VPP_2V5` down to that input. The release point must sit above the FPGA's 2.30 V `VPP_2V5` minimum and below the rail's 2.499 V static minimum. The worst case combines:
+
+- the [TPS3808 data sheet](https://www.ti.com/lit/ds/symlink/tps3808.pdf)'s ±2 % threshold and 1.5–3 % hysteresis for the G01
+- ±25 nA sense current through the 8.3 kΩ divider source resistance (±0.2 mV)
+- ±0.1 % resistors with ±25 ppm/°C across 0–40 °C
+
+Those put the release between **2.334 V and 2.479 V** and the falling threshold between 2.300 V and 2.407 V. The FPGA is therefore held in reset whenever `VPP_2V5` is below 2.30 V, and the rail clears the release point by at least 20 mV. With 1 % resistors the spread would be wider than the 2.30–2.499 V window. The divider draws about 44 µA.
+
+| Ref | Value | Part | LCSC |
+| --- | --- | --- | --- |
+| R43 | 48.1 kΩ ±0.1 % | Yageo RT0603BRD0748K1L | C861428 |
+| R44 | 10 kΩ ±0.1 % | Yageo RT0603BRD0710KL | C95204 |
+| C44 | 10 nF, sense filter | Samsung CL10B103KB8NNNC | C1589 |
+| C45 | 100 nF, U4 VDD bypass | Samsung CL10B104KB8NNNC | C1591 |
+
+The 10 nF CT capacitor (C10) sets the release delay to about 58 ms: TI's `t(s) = C(nF) / 175 + 0.5 ms`.
 
 ## ICs, crystal, beads and connectors
 
-Every non-passive part also has an LCSC number, except the two marked **not stocked**. Stock was checked when these were chosen and will change.
+Every non-passive part also has an LCSC number. Stock was checked when these were chosen and will change.
 
 | Ref | Part | LCSC | Note |
 | --- | --- | --- | --- |
 | U1–U3 | TI TPS7A9001DSKR | C840111 | |
-| U4 | TI TPS389025DSER | **not stocked** | LCSC lists no 2.5 V variant, and the adjustable TPS389001DSER is out of stock. Use JLCPCB global sourcing or supply it yourself, or redesign around a stocked supervisor with a threshold of at least 2.30 V. |
+| U4 | TI TPS3808G01DBVR (SOT-23-6) | C19653 | About 24,000 in stock. It replaces the TPS389025DSER, which LCSC does not stock. The fixed 2.5 V TPS3808G25 is nearly out of stock (3 and 83 pieces), so the adjustable part is used with a divider. |
 | U5 | Lattice iCE40UP5K-SG48I | C2678152 | about 500 in stock |
 | U6 | Winbond W25Q16JVSSIQ (208-mil SOIC) | C82317 | |
-| U7 | SiTime SiT8008BI-23-33E-48.000000 | **not stocked** | LCSC carries this family in 3225 only at other frequencies, for example 50 MHz. The 48 MHz clock is built into the RTL and UART timing, so frequency is not a free substitution. Source it through JLCPCB global sourcing or a SiTime distributor. |
+| U7 | Abracon ASE-48.000MHZ-LC-T | C2650694 | About 1,700 in stock. It replaces the SiT8008BI-23-33E-48.000000, which LCSC carries only at other frequencies; the 48 MHz clock is built into the RTL and UART timing. It is a 3.3 V ±5 % CMOS part, ±50 ppm, rated −40 to 85 °C. Pin 1 runs the oscillator when high or open, and R17 pulls it high. |
 | U8 | FTDI FT2232HL-REEL | C27882 | The orderable name of the FT2232HL in tape and reel. |
 | U9 | TI SN74LVC126APWR | C7815 | |
 | U10 | TI SN74LVC1G02DBVR | C16360 | |
@@ -83,9 +102,9 @@ Every non-passive part also has an LCSC number, except the two marked **not stoc
 | J1 | JST B2B-PH-K-S(LF)(SN) | C131337 | |
 | J2 | GCT USB4105-GF-A-120 | C5184243 | The plain USB4105-GF-A (C3020560) was out of stock. The -120 suffix means 1.20 mm shell stakes instead of 0.95 mm, per the stake-length options on GCT's drawing. The land pattern is the same, and the stakes suit a 1.6 mm board. |
 
-`check_pcb.mjs` requires a manufacturer part number on every part, and a JLCPCB number on every part except U4 and U7.
+`check_pcb.mjs` requires a manufacturer part number and a JLCPCB number on every part.
 
 ## Open items
 
-- Decide how to source U4 and U7: global sourcing, supplied parts, or a stocked redesign. Re-check the low-stock U12 and X2 before ordering.
+- Re-check the low-stock U12 and X2 before ordering.
 - Regulator dissipation and headroom are in [thermal-budget.md](thermal-budget.md).

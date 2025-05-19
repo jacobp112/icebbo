@@ -18,7 +18,7 @@ const loads = {
   "U1 1.2 V": { vout: 1.219, current: 150 }, // rail budget; Lattice gives no operating maximum
   "U2 3.3 V": {
     vout: 3.412,
-    current: 150 + 60 + 25 + 7 + 2 + 10 + 3.3, // FTDI core, FTDI PHY, flash, oscillator, EEPROM, FPGA I/O, pull-ups
+    current: 150 + 60 + 25 + 21.4 + 2 + 10 + 3.3, // FTDI core, FTDI PHY, flash, oscillator, EEPROM, FPGA I/O, pull-ups
   },
   "U3 2.5 V": { vout: 2.621, current: 30 }, // rail budget; VPP startup peak is 2.5 mA
 }

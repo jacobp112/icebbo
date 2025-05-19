@@ -9,10 +9,10 @@ This review records the FPGA power, reset, clock and boot-flash slice of [hardwa
 | Core supply | TPS7A9001DSKR U1, 1.1992 V nominal; U1 PG enables U2 | [TI TPS7A90 data sheet](https://www.ti.com/lit/ds/symlink/tps7a90.pdf) |
 | I/O and flash supply | TPS7A9001DSKR U2, 3.328 V nominal; U2 PG enables U3 | [TI TPS7A90 data sheet](https://www.ti.com/lit/ds/symlink/tps7a90.pdf) |
 | Master-SPI VPP supply | TPS7A9001DSKR U3, 2.56 V nominal | [Lattice UltraPlus data sheet](https://www.latticesemi.com/view_document?document_id=51968) |
-| Reset release | TPS389025DSER U4 senses 2.5 V and drives open-drain `CRESET_B`; 10 nF CT gives about 10.7 ms nominal delay | [TI TPS3890 data sheet](https://www.ti.com/lit/ds/symlink/tps3890.pdf) |
+| Reset release | TPS3808G01DBVR U4 senses 2.5 V through a 0.1 % divider and drives open-drain `CRESET_B`; 10 nF CT gives about 58 ms nominal delay | [TI TPS3808 data sheet](https://www.ti.com/lit/ds/symlink/tps3808.pdf) |
 | FPGA | iCE40UP5K-SG48I U5, package numbers 1–48 and exposed paddle represented as schematic pin 49 | [Lattice SG48 pinout](https://www.latticesemi.com/view_document?document_id=51971) |
 | Boot flash | W25Q16JVSSIQ U6 candidate on FPGA master-SPI signals; `/WP` and `/HOLD` pulled high | [Lattice programming note](https://www.latticesemi.com/view_document?document_id=46502) |
-| FPGA clock | SiT8008BI-23-33E-48.000000 U7, 48 MHz at FPGA pin 35 | [SiTime SiT8008 data sheet](https://www.sitime.com/datasheet/sit8008) |
+| FPGA clock | Abracon ASE-48.000MHZ-LC-T U7, 48 MHz at FPGA pin 35 | [Abracon ASE data sheet](https://abracon.com/Oscillators/ASEseries.pdf) |
 
 For the regulator feedback dividers, `VOUT = 0.8 × (1 + RTOP/RBOTTOM)` gives 1.1992, 3.328 and 2.56 V with `RBOTTOM=100 kΩ` and `RTOP=49.9/316/220 kΩ`. These are calculated nominal values. Their 1 % static tolerance budget, including regulator accuracy, is in [part selection](part-selection.md); rail transients remain to be added. The 6.8 nF NR/SS capacitors produce the calculated ideal ramp bounds in [power-design.md](power-design.md); they do not constitute measured ramp evidence.
 

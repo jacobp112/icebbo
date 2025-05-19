@@ -6,9 +6,9 @@ The board is routed with [Freerouting](https://github.com/freerouting/freeroutin
 
 `hardware/routing/board.ses` is the committed Freerouting session. Its routing stage ran with the optimiser off and left **0 unrouted connections**:
 
-- **Copper:** 650 traces, about 1.81 m in total (1.35 m top, 0.47 m bottom), and 128 vias of 0.45/0.2 mm.
+- **Copper:** 673 traces, about 1.84 m in total (1.30 m top, 0.53 m bottom), and 138 vias of 0.45/0.2 mm.
 - **Planes:** no traces on the inner layers, so both planes are unbroken apart from antipads.
-- **Sign-off:** all 55 nets connected, no shorts, no clearance findings from tscircuit's checks, and the USB pair exactly as designed.
+- **Sign-off:** all 56 nets connected, no shorts, no clearance findings from tscircuit's checks, and the USB pair exactly as designed.
 
 `hardware/check_schematic.ps1` merges this session onto every build and runs the routing sign-off. It needs no Java or Freerouting. A deliberately stale case, R1 moved 1 mm without re-routing, fails with a V1V2 + FB_CORE short.
 
@@ -48,6 +48,7 @@ Each adjustment in `prepare_dsn.mjs` fixes a failure seen while routing:
 
 | Adjustment | Failure without it |
 | --- | --- |
+| Give a part its own footprint image when its pads differ from the image it shares | The export names images by part type and outline size, so the SOT-23-6 U4 and the SOT-23-5 U10 (both 3.7 × 2.5 mm) shared U4's six-pad image. Freerouting routed U10's supply to a pad that does not exist, and the check found U10 unpowered. |
 | Add GND and V3V3 plane polygons on In1 and In2 | The export omits copper pours, so Freerouting has no planes to connect to. |
 | Keep the inner layers `signal`-typed, and restrict classes with `use_layer`: signals to F.Cu/B.Cu, GND to F.Cu/In1/B.Cu, V3V3 to F.Cu/In2/B.Cu | With `power`-typed layers, Freerouting reached the planes only by wiring plane nets on the surface. With unrestricted signal layers, traces ran through the inner layers and split the planes into islands. |
 | Point every class at the one defined via | The export names an undefined `Via[0-1]` padstack for some classes. Nets in those classes could not place vias and never reached the planes. |

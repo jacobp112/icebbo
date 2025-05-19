@@ -27,8 +27,10 @@ for (const [ref, net] of Object.entries({
   "U1.7":"P5V", "U1.9":"P5V", "U1.10":"P5V", "U1.11":"GND",
   "U2.5":"IO_GOOD", "U2.7":"CORE_GOOD", "U2.11":"GND",
   "U3.5":"VPP_GOOD", "U3.7":"IO_GOOD", "U3.11":"GND",
-  "U4.1":"V2V5", "U4.2":"GND", "U4.3":"HOST_MR_N",
-  "U4.4":"V3V3", "U4.5":"RESET_DELAY", "U4.6":"FPGA_RESET_N",
+  "U4.1":"FPGA_RESET_N", "U4.2":"GND", "U4.3":"HOST_MR_N",
+  "U4.4":"RESET_DELAY", "U4.5":"VPP_SENSE", "U4.6":"V3V3",
+  "R43.1":"V2V5", "R43.2":"VPP_SENSE", "R44.1":"VPP_SENSE", "R44.2":"GND",
+  "C44.1":"VPP_SENSE", "C44.2":"GND", "C45.1":"V3V3", "C45.2":"GND",
   "U5.1":"V3V3", "U5.5":"V1V2", "U5.7":"FPGA_CDONE",
   "U5.8":"FPGA_RESET_N", "U5.14":"FLASH_MOSI", "U5.15":"FLASH_SCK",
   "U5.16":"FLASH_CS_N", "U5.17":"FLASH_MISO", "U5.22":"V3V3",
@@ -36,7 +38,7 @@ for (const [ref, net] of Object.entries({
   "U5.33":"V3V3", "U5.35":"CLK48", "U5.49":"GND",
   "U6.1":"FLASH_CS_N", "U6.2":"FLASH_MISO", "U6.4":"GND",
   "U6.5":"FLASH_MOSI", "U6.6":"FLASH_SCK", "U6.8":"V3V3",
-  "U7.2":"GND", "U7.3":"CLK48", "U7.4":"V3V3",
+  "U7.1":"CLOCK_OE", "U7.2":"GND", "U7.3":"CLK48", "U7.4":"V3V3",
   "R18.1":"V1V2", "R18.2":"VPLL",
 })) expect(ref, net)
 

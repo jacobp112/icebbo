@@ -35,26 +35,6 @@ export function Tps7a90DskFootprint() {
   </footprint>
 }
 
-// TI DSE0006A 1.5 mm WSON supervisor: pin 1-3 at left, 4-6 at right.
-// TI's land pattern has 0.7 x 0.25 mm pads on a 1.2 mm row pitch, except
-// pin 1, which is 0.8 mm long. Its longer terminal extends toward the
-// package centre, so its outer edge stays aligned with the other pads.
-export function Tps3890DseFootprint() {
-  return <footprint>
-    {Array.from({length: 3}, (_, i) => <smtpad key={`left-${i}`} shape="rect"
-      pcbX={i === 0 ? -0.55 : -0.6} pcbY={0.5 - i * 0.5}
-      width={i === 0 ? "0.8mm" : "0.7mm"} height="0.25mm"
-      portHints={[`pin${i + 1}`]} />)}
-    {Array.from({length: 3}, (_, i) => <smtpad key={`right-${i}`} shape="rect"
-      pcbX={0.6} pcbY={-0.5 + i * 0.5} width="0.7mm" height="0.25mm"
-      portHints={[`pin${i + 4}`]} />)}
-    {courtyard(2.4, 2.0)}
-    {line("top", [[-0.75, 0.9], [0.75, 0.9]])}
-    {line("bottom", [[-0.75, -0.9], [0.75, -0.9]])}
-    {pin1Dot(-1.2, 0.5)}
-  </footprint>
-}
-
 // SG48 has twelve contacts per edge at 0.5 mm pitch. The central exposed
 // paddle is electrical ground; the pad must be associated with source pin 49.
 export function Ice40Sg48Footprint() {

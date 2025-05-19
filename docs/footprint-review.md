@@ -1,13 +1,13 @@
 # Footprint and placement review
 
-The five hand-drawn land patterns in [footprints.tsx](../hardware/footprints.tsx) were compared with their manufacturers' published drawings. The initial component positions in [placement.ts](../hardware/placement.ts) put all 91 parts on a 100 × 70 mm four-layer outline. This is a desk review of copper geometry against documents. No board has been routed, fabricated or assembled, and no part has been test-fitted.
+The five hand-drawn land patterns in [footprints.tsx](../hardware/footprints.tsx) were compared with their manufacturers' published drawings. The initial component positions in [placement.ts](../hardware/placement.ts) put all 95 parts on a 100 × 70 mm four-layer outline. This is a desk review of copper geometry against documents. No board has been routed, fabricated or assembled, and no part has been test-fitted.
 
 ## Land-pattern comparison
 
 | Part | Package | Reference | Result |
 | --- | --- | --- | --- |
 | U1–U3 TPS7A9001 | DSK0010A, 2.5 mm WSON | TI example board layout 4218903/C, reproduced in the [TPS63900 data sheet](https://www.ti.com/lit/ds/symlink/tps63900.pdf). The current [TPS7A90 data sheet](https://www.ti.com/lit/ds/symlink/tps7a90.pdf) revision B omits the package addendum. | Matches: 10 × 0.6 × 0.25 mm pads at 0.5 mm pitch, 2.3 mm row centres, 1.2 × 2.0 mm thermal pad as pin 11. |
-| U4 TPS389025 | DSE0006A, 1.5 mm WSON | TI example board layout 4220552/B in the [TPS3890 data sheet](https://www.ti.com/lit/ds/symlink/tps3890.pdf) | **Corrected.** TI specifies five 0.7 mm pads and one 0.8 mm pin-1 pad, all 0.25 mm wide on 1.2 mm row centres. Pins 2 and 3 were previously 0.8 mm. Pin 1's longer terminal is taken to extend toward the package centre, keeping its outer edge flush with the others. |
+| U4 TPS3808G01 | DBV0006A, SOT-23-6 | TI example board layout 4214840/G in the [TPS3808 data sheet](https://www.ti.com/lit/ds/symlink/tps3808.pdf) | **Matches.** The generator footprint `sot23_6_w1.5mm_pl1.1mm_pw0.6mm` has 1.1 × 0.6 mm pads at 0.95 mm pitch, 2.6 mm between row centres, with pins 1–3 down the left and 4–6 up the right. It replaces the hand-drawn DSE0006A pattern of the unstocked TPS389025. |
 | U5 iCE40UP5K-SG48I | 48-pin QFN, 7 × 7 mm | Lattice [Package Diagrams](https://www.latticesemi.com/view_document?document_id=213), FPGA-DS-02053-8.8, section 31 | Consistent. The package paddle D2/E2 is 5.20/5.35/5.50 mm (min/nom/max), b is 0.15/0.225/0.30 mm and L is 0.35/0.40/0.45 mm. The 5.4 mm paddle pad and 0.25 × 0.8 mm leads centred 3.4 mm out cover each terminal with a 0.3 mm toe, and leave 0.3 mm to the paddle pad. Lattice publishes no land pattern for this package, so these proportions are an engineering choice. |
 | U8 FT2232HL | LQFP-64, 10 mm body | FTDI [TN_166](https://brtchip.com/wp-content/uploads/Support/Documentation/Technical_Notes/ICs/MCU/TN-166-FTDI-Example-IC-PCB-Footprints.pdf), figure 26.2 | **Corrected.** TN_166 gives 1.65 × 0.30 mm pads on 11.15 mm row centres. The rows were previously at 12.0 mm, which put each pad's inner edge only about 0.1 mm past the lead heel. |
 | J2 GCT USB4105-GF-A(-120) | USB-C, 16-pin SMT top mount | GCT [USB4105 drawing](https://gct.co/files/drawings/usb4105.pdf) revision B, recommended PCB layout; cross-checked against the KiCad library footprint `USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal` | **Corrected.** The contacts, rear stakes and locating holes matched. The front shell stakes were 1.0 × 2.0 mm copper; GCT specifies 1.0 × 1.8 mm with 0.6 × 1.4 mm slots. The rear stakes were 1.05 mm wide; GCT specifies 1.00 mm. |
@@ -25,7 +25,7 @@ The remaining non-passive parts use tscircuit footprint-generator strings. Their
 | U9 SN74LVC126APWR | TSSOP-14 (PW0014A) | TI example board layout 4220202/B in the [SN74LVC126A data sheet](https://www.ti.com/lit/ds/symlink/sn74lvc126a.pdf) | **Corrected** to 1.5 × 0.45 mm pads on 5.8 mm centres. The default 1.45 × 0.30 mm pads on 4.45 mm centres ended short of the lead feet. |
 | U10 SN74LVC1G02DBVR | SOT-23-5 (DBV0005A) | TI example board layout 4214839/K in the [SN74LVC1G02 data sheet](https://www.ti.com/lit/ds/symlink/sn74lvc1g02.pdf) | **Aligned** to TI's 1.1 × 0.6 mm pads on 2.6 mm centres. The default IPC-style pattern also covered the feet. |
 | U12 TPD2EUSB30ADRTR | DRT, 1.0 × 0.8 mm three-pin SOT | TI DRT land pattern 4211172/A, taken from an [archived 2019 TPD2EUSB30A data sheet](https://agelectronica.lat/pdfs/textos/T/TPD2EUSB30ADRTR.PDF) because the [current TI data sheet](https://www.ti.com/lit/ds/symlink/tpd2eusb30a.pdf) omits the addendum | **Corrected.** This was drawn as a 2.9 mm SOT-23, a different package. A custom `TiDrtFootprint` now has three 0.3 mm square pads: pins 1 and 2 on 0.70 mm centres, and pin 3 0.85 mm opposite. D+ and D− are symmetric clamps to pin 3 GND, so the D+/D− pin assignment does not change function. |
-| U7 SiT8008BI-23-33E | 3.2 × 2.5 mm 4-pad oscillator | [SiT8008 data sheet](https://www.sitime.com/datasheet/SiT8008) recommended land pattern; package code `2` confirmed as 3.2 × 2.5 mm on [SiTime's part page](https://www.sitime.com/parts/sit8008bi-23-33e-25000000) | **Corrected.** Pads are 1.4 × 1.2 mm, 2.2 mm apart along pins 1–2 and **1.9 mm** across. The default was 1.7 mm across. |
+| U7 Abracon ASE | 3.2 × 2.5 mm 4-pad oscillator | Recommended land pattern in the [ASE data sheet](https://abracon.com/Oscillators/ASEseries.pdf) | **Matches.** Pads are 1.3 × 1.1 mm, 2.1 mm apart along pins 1–2 and 1.65 mm across. They replace the SiT8008's 1.4 × 1.2 mm pads on 2.2 × 1.9 mm. |
 | X2 ABM8-12.000MHZ-B2-T | 3.2 × 2.5 mm 4-pad crystal | [Abracon ABM8](https://abracon.com/Resonators/abm8.pdf) recommended land pattern | **Corrected** to 1.3 × 1.05 mm pads with a 1.0 × 0.7 mm gap, which gives centres of 2.3 × 1.75 mm. The default had 1.4 × 1.2 mm pads with a 0.8 × 0.5 mm gap. |
 | F1 MF-PSMF110X-2 | **0805** PTC | [Bourns MF-PSMF](https://www.bourns.com/docs/Product-Datasheets/mfpsmf.pdf): body 2.00–2.30 × 1.20–1.50 mm, "PSMF = 0805 Surface Mount" | **Corrected** from a 1206 footprint to 0805. Bourns gives Ihold as 1.10 A at 23 °C but only 0.65 A at 70 °C. That derating belongs in the power review. |
 | J1 B2B-PH-K-S | JST PH, 2 × 2.0 mm, through-hole | [JST PH catalogue](https://www.jst-mfg.com/product/pdf/eng/ePH.pdf) | The 2.0 mm pitch and 5.9 × 4.5 mm body are consistent. The catalogue gives no PCB hole size; the generic 1.0 mm hole with 1.5 mm pad is **unverified** against JST's individual drawing. |
@@ -47,7 +47,6 @@ Each custom footprint has a courtyard rectangle enclosing the larger of its body
 | Footprint | Courtyard | Silkscreen |
 | --- | --- | --- |
 | TPS7A90 DSK0010A | 3.4 × 3.0 mm | lines above and below the body, pin-1 dot |
-| TPS3890 DSE0006A | 2.4 × 2.0 mm | lines above and below the body, pin-1 dot |
 | iCE40 SG48 | 8.1 × 8.1 mm | body corner marks, pin-1 dot |
 | FT2232HL LQFP-64 | 13.3 × 13.3 mm | body corner marks, pin-1 dot |
 | TI DRT | 1.5 × 1.65 mm | pin-1 dot |
@@ -78,13 +77,12 @@ They tie each pad into the inner-1 ground plane for heat and a low-impedance ret
 - every part has a courtyard
 - the exposed pads keep their thermal vias: 9 on the FPGA paddle and 2 on each regulator pad
 - silkscreen is at least 0.1 mm from copper on the custom footprints and 0.05 mm on generator footprints
-- each reviewed footprint keeps its pad count and the corrected dimensions above: the DSK and SG48 exposed pads, TPS3890 pad lengths, FT2232HL row spacing, USB4105 stake sizes and edge offset, the SOIC/TSSOP/SOT-23-5 row spacing and pad sizes, the DRT pads, and the oscillator and crystal pitches
+- each reviewed footprint keeps its pad count and the corrected dimensions above: the DSK and SG48 exposed pads, the SOT-23-6 supervisor, FT2232HL row spacing, USB4105 stake sizes and edge offset, the SOIC/TSSOP/SOT-23-5 row spacing and pad sizes, the DRT pads, and the oscillator and crystal pitches
 
 The check caught each of these deliberately broken copies of the generated board:
 
 - a pad overlapping another part
 - a pad at the board edge
-- the old TPS3890 pad length
 - the old 12 mm FT2232HL row spacing
 - the old J2 position
 - a pin with no pad

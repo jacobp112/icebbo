@@ -31,7 +31,6 @@ writeFileSync(join(outDir, "gerbers.zip"), zipSync(archive))
 // footprinter string, so their package names come from here.
 const customPackages = {
   "TPS7A9001DSKR": "WSON-10 (DSK)",
-  "TPS389025DSER": "WSON-6 (DSE)",
   "iCE40UP5K-SG48I": "QFN-48 (SG48)",
   "TPD2EUSB30ADRTR": "SOT-5X3 (DRT)",
   "USB4105-GF-A-120": "USB-C (USB4105)",

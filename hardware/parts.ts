@@ -38,5 +38,13 @@ function passiveProps(table: Record<string, Passive>, kind: string, value: strin
   }
 }
 
+// 0.1 %, +-25 ppm/C thin film for the VPP reset-threshold divider, where 1 %
+// parts cannot hold the threshold between 2.30 V and the rail (part-selection.md).
+export const precisionResistorParts: Record<string, Passive> = {
+  "10k": { mpn: "RT0603BRD0710KL", footprint: "0603", lcsc: "C95204" },
+  "48.1k": { mpn: "RT0603BRD0748K1L", footprint: "0603", lcsc: "C861428" },
+}
+
 export const capacitorProps = (value: string) => passiveProps(capacitorParts, "capacitor", value)
-export const resistorProps = (value: string) => passiveProps(resistorParts, "resistor", value)
+export const resistorProps = (value: string, tolerance?: "0.1%") =>
+  passiveProps(tolerance ? precisionResistorParts : resistorParts, `${tolerance ?? ""} resistor`.trim(), value)

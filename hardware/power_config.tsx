@@ -1,6 +1,6 @@
 import React from "react"
 import { UsbFtdi } from "./usb_ftdi"
-import { Ice40Sg48Footprint, Tps3890DseFootprint, Tps7a90DskFootprint } from "./footprints"
+import { Ice40Sg48Footprint, Tps7a90DskFootprint } from "./footprints"
 import { at } from "./placement"
 import { capacitorProps, resistorProps } from "./parts"
 import { traceWidth } from "./routing"
@@ -47,8 +47,9 @@ const links: Link[] = [
   ...["GND", "GND_EP", "SS_CTRL"].map((p) => [`U3.${p}`, "GND"] as const),
   ["U3.EN", "IO_GOOD"], ["U3.PG", "VPP_GOOD"], ["U3.FB", "FB_VPP"],
   ["U3.NR_SS", "SS_VPP"],
-  // U4: TPS389025 monitors the actual VPP rail, then releases CRESET_B.
-  ["U4.SENSE", "V2V5"], ["U4.GND", "GND"], ["U4.MR", "HOST_MR_N"],
+  // U4: TPS3808G01 monitors the actual VPP rail through R43/R44, then
+  // releases CRESET_B.
+  ["U4.SENSE", "VPP_SENSE"], ["U4.GND", "GND"], ["U4.MR", "HOST_MR_N"],
   ["U4.VDD", "V3V3"], ["U4.CT", "RESET_DELAY"], ["U4.RESET", "FPGA_RESET_N"],
   // U5: iCE40UP5K-SG48I. The exposed paddle is ground.
   ...["VCC_A", "VCC_B"].map((p) => [`U5.${p}`, "V1V2"] as const),
@@ -65,7 +66,7 @@ const links: Link[] = [
   ["U6.WP_N", "FLASH_WP_N"], ["U6.GND", "GND"],
   ["U6.DI", "FLASH_MOSI"], ["U6.CLK", "FLASH_SCK"],
   ["U6.HOLD_N", "FLASH_HOLD_N"], ["U6.VCC", "V3V3"],
-  // U7: SiT8008 48 MHz, 3.3 V oscillator.
+  // U7: Abracon ASE 48 MHz, 3.3 V oscillator. OE high or open runs it.
   ["U7.OE", "CLOCK_OE"], ["U7.GND", "GND"],
   ["U7.OUT", "CLK48"], ["U7.VDD", "V3V3"],
 ]
@@ -86,6 +87,9 @@ const resistors = [
   ["R16", "10k", "V3V3", "FLASH_HOLD_N"],
   ["R17", "10k", "V3V3", "CLOCK_OE"],
   ["R18", "100ohm", "V1V2", "VPLL"],
+  // VPP reset threshold: 0.405 V x (1 + 48.1k / 10k) = 2.35 V falling.
+  ["R43", "48.1k", "V2V5", "VPP_SENSE", "0.1%"],
+  ["R44", "10k", "VPP_SENSE", "GND", "0.1%"],
 ] as const
 
 const capacitors = [
@@ -102,6 +106,8 @@ const capacitors = [
   ["C21", "4.7uF", "V3V3"], ["C22", "100nF", "V3V3"],
   ["C23", "4.7uF", "V2V5"], ["C24", "100nF", "V2V5"],
   ["C25", "100nF", "V3V3"], ["C26", "100nF", "V3V3"],
+  // U4 SENSE filter and VDD bypass (TPS3808 data sheet, 7.3.1 and pin table).
+  ["C44", "10nF", "VPP_SENSE"], ["C45", "100nF", "V3V3"],
 ] as const
 
 export default function PowerConfig() {
@@ -113,11 +119,11 @@ export default function PowerConfig() {
     <chip name="U1" {...at("U1")} manufacturerPartNumber="TPS7A9001DSKR" supplierPartNumbers={{jlcpcb: ["C840111"]}} footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
     <chip name="U2" {...at("U2")} manufacturerPartNumber="TPS7A9001DSKR" supplierPartNumbers={{jlcpcb: ["C840111"]}} footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
     <chip name="U3" {...at("U3")} manufacturerPartNumber="TPS7A9001DSKR" supplierPartNumbers={{jlcpcb: ["C840111"]}} footprint={<Tps7a90DskFootprint />} pinLabels={regulatorPins} pinAttributes={{IN1:{requiresPower:true},GND:{requiresGround:true},GND_EP:{requiresGround:true}}} />
-    <chip name="U4" {...at("U4")} manufacturerPartNumber="TPS389025DSER" footprint={<Tps3890DseFootprint />} pinLabels={{pin1:"SENSE",pin2:"GND",pin3:"MR",pin4:"VDD",pin5:"CT",pin6:"RESET"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
+    <chip name="U4" {...at("U4")} manufacturerPartNumber="TPS3808G01DBVR" supplierPartNumbers={{jlcpcb: ["C19653"]}} footprint="sot23_6_w1.5mm_pl1.1mm_pw0.6mm" pinLabels={{pin1:"RESET",pin2:"GND",pin3:"MR",pin4:"CT",pin5:"SENSE",pin6:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
     <chip name="U5" {...at("U5")} manufacturerPartNumber="iCE40UP5K-SG48I" supplierPartNumbers={{jlcpcb: ["C2678152"]}} footprint={<Ice40Sg48Footprint />} pinLabels={fpgaPins} pinAttributes={{VCC_A:{requiresPower:true},VCC_B:{requiresPower:true},VCCPLL:{requiresPower:true},VCCIO0:{requiresPower:true},VCCIO2:{requiresPower:true},SPI_VCCIO1:{requiresPower:true},VPP_2V5:{requiresPower:true},GND_EP:{requiresGround:true}}} />
     <chip name="U6" {...at("U6")} manufacturerPartNumber="W25Q16JVSSIQ" supplierPartNumbers={{jlcpcb: ["C82317"]}} footprint="soic8_w8.8mm_p1.27mm_pl1.625mm_pw0.65mm" pinLabels={{pin1:"CS_N",pin2:"DO",pin3:"WP_N",pin4:"GND",pin5:"DI",pin6:"CLK",pin7:"HOLD_N",pin8:"VCC"}} pinAttributes={{VCC:{requiresPower:true},GND:{requiresGround:true}}} />
-    <chip name="U7" {...at("U7")} manufacturerPartNumber="SiT8008BI-23-33E-48.000000" footprint="crystal4_px2.2mm_py1.9mm_pw1.4mm_ph1.2mm" pinLabels={{pin1:"OE",pin2:"GND",pin3:"OUT",pin4:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
-    {resistors.map(([name, resistance]) => <resistor key={name} name={name} {...at(name)} resistance={resistance} {...resistorProps(resistance)} />)}
+    <chip name="U7" {...at("U7")} manufacturerPartNumber="ASE-48.000MHZ-LC-T" supplierPartNumbers={{jlcpcb: ["C2650694"]}} footprint="crystal4_px2.1mm_py1.65mm_pw1.3mm_ph1.1mm" pinLabels={{pin1:"OE",pin2:"GND",pin3:"OUT",pin4:"VDD"}} pinAttributes={{VDD:{requiresPower:true},GND:{requiresGround:true}}} />
+    {resistors.map(([name, resistance,,, tolerance]) => <resistor key={name} name={name} {...at(name)} resistance={resistance} {...resistorProps(resistance, tolerance)} />)}
     {capacitors.map(([name, capacitance]) => <capacitor key={name} name={name} {...at(name)} capacitance={capacitance} {...capacitorProps(capacitance)} />)}
     {links.map(([port, net], i) => <trace key={`ic-${i}`} from={port} to={`net.${net}`} thickness={traceWidth(net)} />)}
     {resistors.flatMap(([name,, a,b]) => [

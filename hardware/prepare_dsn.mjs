@@ -82,6 +82,47 @@ dsn = dsn.replaceAll(oldVia, newVia)
 
 dsn = dsn.replace(/\(clearance (150|200)\)/g, "(clearance 100)")
 
+// The export names each footprint image after the part type and its outline
+// size, so two different land patterns of the same size share one image and
+// the second part is routed to the first one's pads (the SOT-23-6 U4 and
+// SOT-23-5 U10 are both 3.7 x 2.5 mm). Compare every placed part's pads with
+// its image and give each mismatched part an image of its own pads.
+const byId = (type) => new Map(circuit.filter((e) => e.type === type).map((e) => [e[`${type}_id`], e]))
+const sourcePorts = byId("source_port")
+const pcbPorts = byId("pcb_port")
+const pcbComponentBySource = new Map(circuit.filter((e) => e.type === "pcb_component").map((c) => [c.source_component_id, c]))
+const padsOfPart = (sourceComponentId) => {
+  const part = pcbComponentBySource.get(sourceComponentId)
+  return circuit.filter((e) => (e.type === "pcb_smtpad" || e.type === "pcb_plated_hole") && e.pcb_component_id === part.pcb_component_id)
+    .map((pad) => ({ pad, pin: sourcePorts.get(pcbPorts.get(pad.pcb_port_id)?.source_port_id)?.pin_number,
+      x: um(pad.x - part.center.x), y: um(pad.y - part.center.y) }))
+}
+// Same pins at the same positions, to 1 µm (the export rounds differently).
+const samePins = (a, b) => a.length === b.length &&
+  a.every((p) => b.some((q) => q.pin === p.pin && Math.abs(q.x - p.x) <= 1 && Math.abs(q.y - p.y) <= 1))
+const imagePins = new Map([...dsn.matchAll(/\(image "([^"]+)"\n([\s\S]*?)\n {4}\)/g)].map(([, name, body]) =>
+  [name, [...body.matchAll(/\(pin \S+ (?:\(rotate [^)]+\) )?(\S+) (\S+) (\S+)\)/g)]
+    .map(([, pin, px, py]) => ({ pin: Number(pin), x: Math.round(Number(px)), y: Math.round(Number(py)) }))]))
+let splitImages = 0
+for (const [, image, places] of dsn.matchAll(/\(component "([^"]+)"\n((?: {6}\(place [^\n]+\n)+)/g)) {
+  for (const [line, sourceId] of places.matchAll(/ {6}\(place \S+?_(source_component_\d+) [^\n]+\n/g)) {
+    const pads = padsOfPart(sourceId)
+    if (samePins(pads, imagePins.get(image))) continue
+    const name = `${image}:${sourceId}`
+    const pins = pads.map(({ pad, pin, x, y }) => {
+      if (pad.type !== "pcb_smtpad" || pad.shape !== "rect") throw new Error(`${sourceId}: cannot build an image for ${pad.type} ${pad.shape}`)
+      const padstack = `RoundRect[T]Pad_${um(pad.width)}x${um(pad.height)}_um`
+      if (!dsn.includes(`(padstack "${padstack}"`)) throw new Error(`${sourceId}: padstack ${padstack} not in the export`)
+      return `      (pin ${padstack} ${pin} ${x} ${y})\n`
+    })
+    replaceOnce(line, "")
+    replaceOnce(`    (component "${image}"\n`, `    (component "${name}"\n${line}    )\n    (component "${image}"\n`)
+    replaceOnce(`    (image "${image}"\n`, `    (image "${name}"\n${pins.join("")}    )\n    (image "${image}"\n`)
+    splitImages++
+  }
+}
+if (splitImages) console.log(`Gave ${splitImages} ${splitImages === 1 ? "part its" : "parts their"} own footprint image`)
+
 // Each plane net gets its own class that may also use its own plane layer,
 // so its pins can reach the plane; the other plane stays untouched.
 for (const [name, layer] of [["GND", "In1.Cu"], ["V3V3", "In2.Cu"]]) {

@@ -79,9 +79,6 @@ for (const name of ["U1", "U2", "U3"]) {
   assert.equal(padsOf(name).length, 13, `${name} DSK0010A pads and 2 thermal vias`)
   assert.deepEqual(size(exposedPad(name, "pin11")), [1.2, 2], `${name} thermal pad`)
 }
-assert.equal(padsOf("U4").length, 6, "U4 DSE0006A pads")
-assert.deepEqual(size(pad("U4", "pin1")), [0.8, 0.25], "U4 pin 1")
-for (const pin of [2, 3, 4, 5, 6]) assert.deepEqual(size(pad("U4", `pin${pin}`)), [0.7, 0.25], `U4 pin ${pin}`)
 assert.equal(padsOf("U5").length, 58, "U5 SG48 pads and 9 thermal vias")
 assert.deepEqual(size(exposedPad("U5", "pin49")), [5.4, 5.4], "U5 exposed paddle")
 assert.equal(padsOf("U8").length, 64, "U8 LQFP-64 pads")
@@ -99,6 +96,7 @@ const libraryRows = [
   ["U11", 8, "pin1", "pin8", 5.4, [1.55, 0.6]],
   ["U9", 14, "pin1", "pin14", 5.8, [1.5, 0.45]],
   ["U10", 5, "pin1", "pin5", 2.6, [1.1, 0.6]],
+  ["U4", 6, "pin1", "pin6", 2.6, [1.1, 0.6]],
 ]
 for (const [name, count, left, right, spacing, padSize] of libraryRows) {
   assert.equal(padsOf(name).length, count, `${name} pads`)
@@ -109,7 +107,7 @@ assert.equal(padsOf("U12").length, 3, "U12 DRT pads")
 for (const p of padsOf("U12")) assert.deepEqual(size(p), [0.3, 0.3], `U12 ${p.pin}`)
 near(rowSpacing("U12", "pin1", "pin2"), 0.7, "U12 pin 1-2 spacing")
 near(centre(pad("U12", "pin3"))[1] - centre(pad("U12", "pin1"))[1], 0.85, "U12 pin 3 offset")
-for (const [name, dx, dy, padSize] of [["U7", 2.2, 1.9, [1.4, 1.2]], ["X2", 2.3, 1.75, [1.3, 1.05]]]) {
+for (const [name, dx, dy, padSize] of [["U7", 2.1, 1.65, [1.3, 1.1]], ["X2", 2.3, 1.75, [1.3, 1.05]]]) {
   near(rowSpacing(name, "pin1", "pin2"), dx, `${name} pin 1-2 pitch`)
   near(centre(pad(name, "pin4"))[1] - centre(pad(name, "pin1"))[1], dy, `${name} pin 1-4 pitch`)
   for (const p of padsOf(name)) assert.deepEqual(size(p), padSize, `${name} ${p.pin}`)
@@ -125,12 +123,11 @@ const d1Source = items("source_component").find((c) => c.name === "D1")
 const d1Pin1 = items("source_port").find((p) => p.source_component_id === d1Source.source_component_id && p.pin_number === 1)
 assert.equal(d1Pin1.name, "K", "D1 pin 1 must be the cathode")
 
-// Every part has a manufacturer number, and all but the two parts LCSC does
-// not stock carry a JLCPCB number (docs/part-selection.md).
+// Every part has a manufacturer number and a JLCPCB number (docs/part-selection.md).
 const withoutMpn = items("source_component").filter((c) => !c.manufacturer_part_number && !/simple_(resistor|capacitor)/.test(c.ftype)).map((c) => c.name)
 assert.deepEqual(withoutMpn, [], "parts without a manufacturer part number")
 const notStocked = items("source_component").filter((c) => !c.supplier_part_numbers?.jlcpcb?.length).map((c) => c.name).sort()
-assert.deepEqual(notStocked, ["U4", "U7"], "parts without a JLCPCB number")
+assert.deepEqual(notStocked, [], "parts without a JLCPCB number")
 
 // Every resistor and capacitor is an orderable JLCPCB part (hardware/parts.ts).
 const passives = items("source_component").filter((c) => /simple_(resistor|capacitor)/.test(c.ftype))
@@ -145,7 +142,7 @@ assert.deepEqual(bare, [], "components without a courtyard")
 // Silkscreen stays clear of copper: 0.1 mm for the footprints drawn in
 // footprints.tsx; 0.05 mm for generator footprints, whose SOIC/TSSOP body
 // outline sits at that fixed distance inside the pad rows.
-const customFootprints = new Set(["U1", "U2", "U3", "U4", "U5", "U8", "U12", "J2"])
+const customFootprints = new Set(["U1", "U2", "U3", "U5", "U8", "U12", "J2"])
 const silkGapFor = (owner) => (customFootprints.has(owner) ? 0.1 : 0.05)
 const rectDistance = (x, y, r) => Math.hypot(Math.max(r.x0 - x, 0, x - r.x1), Math.max(r.y0 - y, 0, y - r.y1))
 const segmentDistance = (a, b, r) => {
